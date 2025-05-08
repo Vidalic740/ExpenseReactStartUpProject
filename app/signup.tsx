@@ -1,40 +1,91 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function SignUpScreen(){
+    const [email, setEmail] =useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const router = useRouter();
+
+    const handleSignUp = async () => {
+        if (password !== confirmPassword) {
+            Alert.alert('Error', 'Passwords do not match');
+            return;
+        }
+    
+        try {
+            const response = await fetch('http://192.168.43.15:3000/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password }),
+            });
+    
+            if (!response.ok) {
+                // Handle HTTP errors (non-2xx responses)
+                const data = await response.json();
+                Alert.alert('Error', data.message || 'Failed to sign up');
+                return;
+            }
+    
+            const data = await response.json();
+            Alert.alert('Success', data.message);
+            router.push('/');
+        } catch (err) {
+            if (err instanceof Error) {
+                Alert.alert('Network Error', err.message);
+            } else {
+                Alert.alert('Network Error', 'An unexpected error occurred');
+            }
+        }
+    };
+    
+
     return(
         <LinearGradient
-        colors={['#26669f', '#822452']}
-        start={{x:1,y:0}}
-        end={{x:0,y:0}}
-        style={styles.container}>
+            colors={['#26669f', '#822452']}
+            start={{x:1,y:0}}
+            end={{x:0,y:0}}
+            style={styles.container}>
             <Text style={styles.title}>Create An {'\n'} Account</Text>
             <View style={styles.holder}>
+
+                {/*Email Input*/}
                 <View style={styles.inputWrapper}>
                     <Text style={styles.label}>Email</Text>
                     <TextInput style={styles.inputLine}
                         keyboardType='email-address'
+                        value={email}
+                        onChangeText={setEmail}
                         autoCapitalize='none'/>
                 </View>
 
+                {/*Password Input*/}
                 <View style={styles.inputWrapper}>
                     <Text style={styles.label}>Password</Text>
                     <TextInput style={styles.inputLine}
                         secureTextEntry
+                        value={password}
+                        onChangeText={setPassword}
                         autoCapitalize='none'/>
                 </View>
 
+                {/*Confirm Password Input*/}
                 <View style={styles.inputWrapper}>
                     <Text style={styles.label}>Confirm Password</Text>
                     <TextInput style={styles.inputLine}
                         secureTextEntry
-                        autoCapitalize='none'/>
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                    autoCapitalize='none'/>
                 </View>
 
                 <TouchableOpacity accessible={true}
-                    accessibilityLabel='Tap me!'>
+                    accessibilityLabel='Tap me!'
+                    onPress={handleSignUp}>
                     <View style={styles.button}>
                         <Text style={styles.btnText}>Sign Up</Text>
                     </View>

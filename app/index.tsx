@@ -1,9 +1,41 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, {useState} from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
+  const[email, setEmail] = useState('');
+  const[password, setPassword] = useState('');
+
+  const handdleLogin = async() => {
+    if( !email || !password){
+      Alert.alert('Validation Error', 'Please enter bothemail andpassword.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://192.168.43.15:3000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Redirect to home screen
+        router.push('/home');
+      } else {
+        Alert.alert('Login Failed', data.message || 'Invalid credentials.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Network request failed. Is the backend running?');
+    }
+  };
+
   return (
     <LinearGradient
     colors={['#26669f','#822452']}
@@ -16,12 +48,16 @@ export default function HomeScreen() {
           <Text style={styles.label}>Email</Text>
           <TextInput style={styles.inputLine}
           keyboardType='email-address'
-          autoCapitalize='none'/>
+          autoCapitalize='none'
+          value={email}
+            onChangeText={setEmail}/>
         </View>
         <View style={styles.inputWrapper}>
           <Text style={styles.label}>Password</Text>
           <TextInput style={styles.inputLine}
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
           autoCapitalize='none'/>
         </View>
 
@@ -34,7 +70,7 @@ export default function HomeScreen() {
         
         <TouchableOpacity accessible={true}
           accessibilityLabel='Tap me!'
-          onPress={() => router.push("/home")}>
+          onPress={handdleLogin}>
           <View style={styles.button}>
             <Text style={styles.btnText}>Login</Text>
           </View>
