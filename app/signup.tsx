@@ -16,7 +16,7 @@ export default function SignUpScreen(){
         }
     
         try {
-            const response = await fetch('http://192.168.43.15:3000/signup', {
+            const response = await fetch('https://a47b-41-90-69-96.ngrok-free.app/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

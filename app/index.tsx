@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
@@ -14,7 +14,7 @@ export default function HomeScreen() {
     }
 
     try {
-      const response = await fetch('http://192.168.43.15:3000/login', {
+      const response = await fetch('https://9b0a-41-90-69-96.ngrok-free.app/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

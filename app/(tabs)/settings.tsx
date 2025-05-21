@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     paddingTop: 25,
+    backgroundColor: '#ffefff'
   },
 
   settingsInfo:{

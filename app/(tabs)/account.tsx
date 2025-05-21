@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AccountScreen() {
   return (
@@ -7,8 +7,7 @@ export default function AccountScreen() {
     <View style={styles.main}>
       <View style={styles.profile}>
         <View style={styles.profileImage}>
-          <Image source={require('../../assets/images/profile.png')}
-          style={styles.image}/>
+         
         </View>
         <View style={styles.profileInfo}>
           <Text style={styles.nameValue}>Fullname</Text>
@@ -95,7 +94,7 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   main:{
     flex: 1,
-    padding: 16,
+    padding: 10,
   },
 
   scroll:{
@@ -103,7 +102,7 @@ const styles = StyleSheet.create({
   },
 
   profile:{
-    marginTop: 35,
+    marginTop: 25,
     height: 'auto',
     paddingHorizontal: 5,
     flexDirection: 'row',
