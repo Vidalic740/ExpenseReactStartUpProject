@@ -54,10 +54,12 @@ const styles = StyleSheet.create({
   main:{
     flex: 1,
     padding: 10,
+    backgroundColor: '#ffefff',
   },
 
   display:{
     flexGrow: 1,
+    backgroundColor: '#ffefff',
   },
 
   header:{

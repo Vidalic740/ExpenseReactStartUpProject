@@ -14,7 +14,7 @@ export default function HomeScreen() {
     }
 
     try {
-      const response = await fetch('https://9b0a-41-90-69-96.ngrok-free.app/login', {
+      const response = await fetch('http://localhost:3000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert('Error', 'Network request failed. Is the backend running?');
+      Alert.alert('Error', 'Network request failed.');
     }
   };
 

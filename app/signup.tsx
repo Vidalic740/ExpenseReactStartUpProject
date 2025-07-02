@@ -16,7 +16,7 @@ export default function SignUpScreen(){
         }
     
         try {
-            const response = await fetch('https://a47b-41-90-69-96.ngrok-free.app/signup', {
+            const response = await fetch('http://localhost:3000/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

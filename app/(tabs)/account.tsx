@@ -7,7 +7,7 @@ export default function AccountScreen() {
     <View style={styles.main}>
       <View style={styles.profile}>
         <View style={styles.profileImage}>
-         
+
         </View>
         <View style={styles.profileInfo}>
           <Text style={styles.nameValue}>Fullname</Text>
@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
 
   scroll:{
     flexGrow: 1,
+    backgroundColor: '#ffefff',
   },
 
   profile:{
@@ -110,6 +111,11 @@ const styles = StyleSheet.create({
 
   profileImage:{
     height: 100,
+    width:100,
+    borderRadius: 100,
+    backgroundColor: '#fff',
+    borderColor: '#826529',
+    borderWidth: 2,
   },
 
   image:{
