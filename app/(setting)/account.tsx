@@ -11,7 +11,7 @@ export default function AccountScreen(){
 const styles = StyleSheet.create({
     main:{
         flex: 1,
-        backgroundColor: 'ffefff',
+        backgroundColor: '#fdfdfd',
         padding: 16,
     }
 })

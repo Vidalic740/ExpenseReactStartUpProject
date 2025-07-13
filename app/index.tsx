@@ -2,8 +2,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useAppTheme } from '../context/ThemeContext';
 
 export default function HomeScreen() {
+
+  const { theme } = useAppTheme();
+  const backgroundColor = theme === 'dark' ? '#1e293b' : '#fdfdfd';
+  const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+
   const[email, setEmail] = useState('');
   const[password, setPassword] = useState('');
 
@@ -70,7 +76,7 @@ export default function HomeScreen() {
         
         <TouchableOpacity accessible={true}
           accessibilityLabel='Tap me!'
-          onPress={handdleLogin}>
+          onPress={()=> router.push("/home")}>
           <View style={styles.button}>
             <Text style={styles.btnText}>Login</Text>
           </View>

@@ -1,4 +1,4 @@
-import {View, StyleSheet, Text} from 'react-native'
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function UpdateScreen(){
     return(
@@ -11,7 +11,7 @@ export default function UpdateScreen(){
 const styles = StyleSheet.create({
     main:{
         flex: 1,
-        backgroundColor: '#ffefff',
+        backgroundColor: '#fdfdfd',
         padding: 16,
     }
 });

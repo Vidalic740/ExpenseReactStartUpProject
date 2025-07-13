@@ -1,180 +1,125 @@
+import { useAppTheme } from '@/context/ThemeContext';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AccountScreen() {
+  const { colors, theme } = useAppTheme();
+  const isDark = theme === 'dark';
+
+  const backgroundColor = isDark ? '#1e293b' : '#fdfdfd';
+  const cardColor = isDark ? '#334155' : '#dcdcdc';
+  const textColor = isDark ? '#f1f5f9' : '#1e293b';
+
   return (
-    <ScrollView style={styles.scroll}>
-    <View style={styles.main}>
-      <View style={styles.profile}>
-        <View style={styles.profileImage}>
-
+    <ScrollView style={[styles.scroll, { backgroundColor: colors.background  }]}>
+      <View style={styles.main}>
+        <View style={styles.profile}>
+          <View style={[styles.profileImage, { borderColor: isDark ? '#facc15' : '#826529', backgroundColor: backgroundColor }]} />
+          <View style={styles.profileInfo}>
+            <Text style={[styles.nameValue, { color: textColor }]}>Fullname</Text>
+            <Text style={[styles.nameValue, { color: textColor }]}>Email Address</Text>
+          </View>
         </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.nameValue}>Fullname</Text>
-          <Text style={styles.nameValue}>Email Address</Text>
+
+        <Text style={[styles.title, { color: textColor }]}>Account</Text>
+        <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
+          {[
+            { label: 'Account number', value: '' },
+            { label: 'Password', action: 'Change' },
+            { label: 'Phone number', action: 'Edit' },
+            { label: 'Email', action: 'Link' },
+            { label: 'Registration date', value: '' },
+          ].map(({ label, value, action }) => (
+            <View style={styles.accountInfo} key={label}>
+              <Text style={[styles.detail, { color: textColor }]}>{label}</Text>
+              {action ? (
+                <TouchableOpacity accessible accessibilityLabel="Tap me!">
+                  <Text style={[styles.edit, { color: isDark ? '#38bdf8' : 'blue' }]}>{action}</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={[styles.value, { color: textColor }]}>{value}</Text>
+              )}
+            </View>
+          ))}
+        </View>
+
+        <Text style={[styles.title, { color: textColor }]}>Personal information</Text>
+        <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
+          {['Name', 'Surname', 'Country', 'City', 'Date of Birth'].map((label) => (
+            <View style={styles.accountInfo} key={label}>
+              <Text style={[styles.detail, { color: textColor }]}>{label}</Text>
+              <Text style={[styles.value, { color: textColor }]}></Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={[styles.profileEdit, { backgroundColor: cardColor }]}>
+          <Text style={[styles.editProfile, { color: textColor }]}>Edit Profile</Text>
         </View>
       </View>
-
-      <Text style={styles.title}>Account</Text>
-      <View style={styles.accountCard}>
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>Account number</Text>
-          <Text style={styles.value}></Text>
-        </View>
-
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>Password</Text>
-          <TouchableOpacity
-            accessible={true}
-            accessibilityLabel='Tap me!'>
-            <Text style={styles.edit}>Change</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>Phone number</Text>
-          <TouchableOpacity
-            accessible={true}
-            accessibilityLabel='Tap me!'>
-            <Text style={styles.edit}>Edit</Text>
-          </TouchableOpacity>
-        </View>
-  
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>Email</Text>
-          <TouchableOpacity
-            accessible={true}
-            accessibilityLabel='Tap me!'>
-            <Text style={styles.edit}>Link</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>Registration date</Text>
-          <Text style={styles.value}></Text>
-        </View>
-      </View>
-
-      <Text style={styles.title}>Personal information</Text>
-      <View style={styles.accountCard}>
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>Name</Text>
-          <Text style={styles.value}></Text>
-        </View>
-
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>Surname</Text>
-          <Text style={styles.value}></Text>
-        </View>
-
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>Country</Text>
-          <Text style={styles.value}></Text>
-        </View>
-
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>City</Text>
-          <Text style={styles.value}></Text>
-        </View>
-
-        <View style={styles.accountInfo}>
-          <Text style={styles.detail}>Date of Birth</Text>
-          <Text style={styles.value}></Text>
-        </View>
-      </View>
-
-      <View style={styles.profileEdit}>
-        <Text style={styles.editProfile}>Edit Profile</Text>
-      </View>
-    </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  main:{
+  main: {
     flex: 1,
     padding: 10,
   },
-
-  scroll:{
+  scroll: {
     flexGrow: 1,
-    backgroundColor: '#ffefff',
   },
-
-  profile:{
+  profile: {
     marginTop: 25,
     height: 'auto',
     paddingHorizontal: 5,
     flexDirection: 'row',
   },
-
-  profileImage:{
-    height: 100,
-    width:100,
-    borderRadius: 100,
-    backgroundColor: '#fff',
-    borderColor: '#826529',
-    borderWidth: 2,
-  },
-
-  image:{
+  profileImage: {
     height: 100,
     width: 100,
     borderRadius: 100,
+    borderWidth: 2,
   },
-
-  profileInfo:{
+  profileInfo: {
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-
-  nameValue:{
+  nameValue: {
     fontSize: 16,
   },
-
-  title:{
+  title: {
     fontSize: 16,
     marginTop: 20,
   },
-
-  accountCard:{
+  accountCard: {
     height: 'auto',
-    backgroundColor: '#dcdcdc',
-    borderRadius: 25,
+    borderRadius: 15,
     marginTop: 8,
   },
-
-  accountInfo:{
+  accountInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 10,
   },
-
-  detail:{
+  detail: {
     fontSize: 16,
   },
-
-  edit:{
+  edit: {
     fontSize: 15,
-    color: 'blue',
     textDecorationLine: 'underline',
   },
-
-  value:{
+  value: {
     fontSize: 17,
   },
-
-  profileEdit:{
+  profileEdit: {
     height: 42,
-    backgroundColor: '#dcdcdc',
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
   },
-  
-  editProfile:{
+  editProfile: {
     fontSize: 18,
   },
 });
