@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { useAppTheme } from '@/context/ThemeContext'; // 👈 Import your theme context
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function AddExpenseScreen() {
+  const { colors } = useAppTheme(); // 👈 Use theme colors
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [date, setDate] = useState('');
@@ -13,57 +15,75 @@ export default function AddExpenseScreen() {
       Alert.alert('Please fill in all required fields.');
       return;
     }
-    // Handle form submission logic here
     Alert.alert('Expense added successfully!');
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      <Text style={styles.title}>Add Expense</Text>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={{ paddingBottom: 40 }}
+    >
+      <Text style={[styles.title, { color: '#dc2626' }]}>Add Expense</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Amount (Ksh.) *</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Amount (Ksh.) *</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
           keyboardType="numeric"
           placeholder="e.g. 5000"
+          placeholderTextColor={colors.subText}
           value={amount}
           onChangeText={setAmount}
         />
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Category *</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Category *</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
           placeholder="e.g. Food, Transport"
+          placeholderTextColor={colors.subText}
           value={category}
           onChangeText={setCategory}
         />
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Date *</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Date *</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.input, color: colors.text, borderColor: colors.border }]}
           placeholder="YYYY-MM-DD"
+          placeholderTextColor={colors.subText}
           value={date}
           onChangeText={setDate}
         />
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Description</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Description</Text>
         <TextInput
-          style={[styles.input, { height: 80 }]}
+          style={[
+            styles.input,
+            {
+              height: 80,
+              backgroundColor: colors.input,
+              color: colors.text,
+              borderColor: colors.border,
+              textAlignVertical: 'top',
+            },
+          ]}
           placeholder="Optional notes"
+          placeholderTextColor={colors.subText}
           multiline
           value={description}
           onChangeText={setDescription}
         />
       </View>
 
-      <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+      <TouchableOpacity
+        style={[styles.submitBtn, { backgroundColor: '#dc2626'}]}
+        onPress={handleSubmit}
+      >
         <MaterialCommunityIcons name="plus" size={20} color="#fff" />
         <Text style={styles.submitBtnText}>Add Expense</Text>
       </TouchableOpacity>
@@ -72,23 +92,19 @@ export default function AddExpenseScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fdfdfd' },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 24, color: '#dc2626' },
+  container: { flex: 1, padding: 16 },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: 24 },
   inputGroup: { marginBottom: 18 },
-  label: { fontSize: 16, marginBottom: 6, color: '#334155' },
+  label: { fontSize: 16, marginBottom: 6 },
   input: {
     borderWidth: 1,
-    borderColor: '#94a3b8',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
-    backgroundColor: '#fff',
-    color: '#1e293b',
   },
   submitBtn: {
     flexDirection: 'row',
-    backgroundColor: '#dc2626',
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',

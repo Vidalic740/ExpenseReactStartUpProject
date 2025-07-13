@@ -21,13 +21,13 @@ export default function AccountScreen() {
           </View>
         </View>
 
-        <Text style={[styles.title, { color: textColor }]}>Account</Text>
+        <Text style={[styles.title, { color: textColor }]}>Account Details</Text>
         <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
           {[
             { label: 'Account number', value: '' },
             { label: 'Password', action: 'Change' },
             { label: 'Phone number', action: 'Edit' },
-            { label: 'Email', action: 'Link' },
+            { label: 'Email', value:'' },
             { label: 'Registration date', value: '' },
           ].map(({ label, value, action }) => (
             <View style={styles.accountInfo} key={label}>
@@ -45,7 +45,7 @@ export default function AccountScreen() {
 
         <Text style={[styles.title, { color: textColor }]}>Personal information</Text>
         <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
-          {['Name', 'Surname', 'Country', 'City', 'Date of Birth'].map((label) => (
+          {['Firstname', 'Surname', 'Country', 'City', 'Date of Birth'].map((label) => (
             <View style={styles.accountInfo} key={label}>
               <Text style={[styles.detail, { color: textColor }]}>{label}</Text>
               <Text style={[styles.value, { color: textColor }]}></Text>

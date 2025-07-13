@@ -1,17 +1,23 @@
-import {View, Text, StyleSheet} from 'react-native'
+import { useAppTheme } from '@/context/ThemeContext'; // 👈 Theme hook
+import { StyleSheet, Text, View } from 'react-native';
 
-export default function AboutScreen(){
-    return(
-        <View style={styles.main}>
-            <Text>About</Text>
-        </View>
-    );
+export default function AboutScreen() {
+  const { colors } = useAppTheme(); // 🎨 Access theme colors
+
+  return (
+    <View style={[styles.main, { backgroundColor: colors.background }]}>
+      <Text style={[styles.text, { color: colors.text }]}>Languages</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    main:{
-        flex: 1,
-        backgroundColor: '#fdfdfd',
-        padding: 16,
-    }
+  main: {
+    flex: 1,
+    padding: 16,
+  },
+  text: {
+    fontSize: 18,
+    fontWeight: '500',
+  },
 });

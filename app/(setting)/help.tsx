@@ -1,17 +1,22 @@
-import{ View, StyleSheet, Text} from 'react-native'
+import { View, StyleSheet, Text } from 'react-native';
+import { useAppTheme } from '@/context/ThemeContext'; // 👈 Theme hook
 
-export default function HelpScreen(){
-    return(
-        <View style={styles.main}>
-            <Text>Help</Text>
-        </View>
-    );
+export default function HelpScreen() {
+  const { colors } = useAppTheme(); // 🎨 Access theme colors
+
+  return (
+    <View style={[styles.main, { backgroundColor: colors.background }]}>
+    </View>
+  );
 }
 
-const styles =StyleSheet.create({
-    main:{
-        flex: 1,
-        backgroundColor: '#fdfdfd',
-        padding: 20,
-    },
+const styles = StyleSheet.create({
+  main: {
+    flex: 1,
+    padding: 16,
+  },
+  text: {
+    fontSize: 18,
+    fontWeight: '500',
+  },
 });

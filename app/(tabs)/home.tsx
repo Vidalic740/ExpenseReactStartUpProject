@@ -109,7 +109,7 @@ export default function HomeScreen() {
           <View style={styles.transactionsHeader}>
             <Text style={[styles.transactionsTitle, { color: textColor }]}>Recent Transactions</Text>
             <TouchableOpacity>
-              <Text style={{ color: '#059669' }}>View All</Text>
+              <Text style={{ color: colors.accent }}>View All</Text>
             </TouchableOpacity>
           </View>
 
@@ -130,6 +130,17 @@ export default function HomeScreen() {
             </View>
             <View style={styles.transactionInfo}>
               <Text style={[styles.transactionName, { color: textColor }]}>Groceries</Text>
+              <Text style={[styles.transactionDesc, { color: fadedText }]}>Expense • Yesterday</Text>
+            </View>
+            <Text style={styles.transactionAmountNegative}>-Ksh. 2,500</Text>
+          </View>
+
+          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
+            <View style={[styles.iconWrapper, { backgroundColor: '#fee2e2' }]}>
+              <MaterialCommunityIcons name="arrow-down-bold" size={20} color="#dc2626" />
+            </View>
+            <View style={styles.transactionInfo}>
+              <Text style={[styles.transactionName, { color: textColor }]}>Rent</Text>
               <Text style={[styles.transactionDesc, { color: fadedText }]}>Expense • Yesterday</Text>
             </View>
             <Text style={styles.transactionAmountNegative}>-Ksh. 2,500</Text>

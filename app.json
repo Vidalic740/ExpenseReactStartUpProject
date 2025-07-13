@@ -42,8 +42,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d12d6dad-4e6a-4450-ab8b-2cbcf1f565e0"
+        "projectId": "49a1144d-290f-4f6e-8ab7-26a00354db53"
       }
-    }
+    },
+    "owner": "vidalic740"
   }
 }

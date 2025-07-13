@@ -1,33 +1,45 @@
-import { useAppTheme } from '@/context/ThemeContext'; // 👈 Importing custom theme hook
+import { useAppTheme } from '@/context/ThemeContext';
 import React, { useState } from 'react';
 import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ThemeScreen() {
-  const { theme, toggleTheme } = useAppTheme(); // 🔄 Use global theme context
-  const isDarkMode = theme === 'dark';
+  const {
+    theme,
+    toggleTheme,
+    colors,
+    accentColor,
+    updateAccentColor,
+  } = useAppTheme();
 
+  const isDarkMode = theme === 'dark';
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
-  const [themeColor, setThemeColor] = useState('#059669'); // Local state for accent
 
   const fontSizes = {
-    small: 14,
+    small: 11,
     medium: 18,
     large: 22,
   };
 
   const themeColors = [
-    { name: 'Green', color: '#059669' },
-    { name: 'Blue', color: '#2563eb' },
-    { name: 'Purple', color: '#7c3aed' },
+    { name: 'Green', color: '#059669' },       // Emerald
+    { name: 'Blue', color: '#2563eb' },        // Royal Blue
+    { name: 'Purple', color: '#7c3aed' },      // Violet
+    { name: 'Red', color: '#dc2626' },         // Crimson Red
+    { name: 'Orange', color: '#f97316' },      // Vivid Orange
+    { name: 'Teal', color: '#14b8a6' },        // Cool Teal
+    { name: 'Pink', color: '#ec4899' },        // Hot Pink
+    { name: 'Yellow', color: '#eab308' },      // Golden Yellow
+    { name: 'Indigo', color: '#4f46e5' },      // Indigo Blue
+    { name: 'Cyan', color: '#06b6d4' },        // Bright Cyan
   ];
 
   return (
-    <View style={[styles.main, { backgroundColor: isDarkMode ? '#1e293b' : '#fdfdfd' }]}>
-      <Text style={[styles.heading, { color: isDarkMode ? '#f1f5f9' : '#1e293b' }]}>Appearance Settings</Text>
+    <View style={[styles.main, { backgroundColor: colors.background }]}>
+      <Text style={[styles.heading, { color: colors.text }]}>Appearance Settings</Text>
 
       {/* Theme Toggle */}
       <View style={styles.settingRow}>
-        <Text style={[styles.label, { color: isDarkMode ? '#f1f5f9' : '#1e293b' }]}>Dark Mode</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Dark Mode</Text>
         <Switch
           value={isDarkMode}
           onValueChange={toggleTheme}
@@ -36,34 +48,36 @@ export default function ThemeScreen() {
         />
       </View>
 
-      {/* Font Size */}
-      <Text style={[styles.label, { color: isDarkMode ? '#f1f5f9' : '#1e293b', marginBottom: 6 }]}>Font Size</Text>
+      {/* Font Size Selector */}
+      <Text style={[styles.label, { color: colors.text, marginBottom: 6 }]}>Font Size</Text>
       <View style={styles.optionsRow}>
-        {['small', 'medium', 'large'].map(size => (
+        {(['small', 'medium', 'large'] as const).map(size => (
           <TouchableOpacity
             key={size}
-            onPress={() => setFontSize(size as any)}
+            onPress={() => setFontSize(size)}
             style={[
               styles.optionBtn,
-              fontSize === size && { backgroundColor: themeColor },
+              fontSize === size && { backgroundColor: accentColor },
             ]}
           >
-            <Text style={{ color: fontSize === size ? '#fff' : '#1e293b' }}>{size}</Text>
+            <Text style={{ color: fontSize === size ? '#fff' : '#1e293b' }}>
+              {size}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Theme Color */}
-      <Text style={[styles.label, { color: isDarkMode ? '#f1f5f9' : '#1e293b', marginTop: 16 }]}>Theme Color</Text>
+      {/* Theme Color Picker */}
+      <Text style={[styles.label, { color: colors.text, marginTop: 16 }]}>Theme Color</Text>
       <View style={styles.optionsRow}>
         {themeColors.map(({ name, color }) => (
           <TouchableOpacity
             key={name}
-            onPress={() => setThemeColor(color)}
+            onPress={() => updateAccentColor(color)}
             style={[
               styles.colorCircle,
               { backgroundColor: color },
-              themeColor === color && styles.selectedColorBorder,
+              accentColor === color && styles.selectedColorBorder,
             ]}
           />
         ))}
@@ -75,7 +89,7 @@ export default function ThemeScreen() {
 const styles = StyleSheet.create({
   main: {
     flex: 1,
-    padding: 20,
+    padding: 18,
   },
   heading: {
     fontSize: 22,
@@ -95,6 +109,7 @@ const styles = StyleSheet.create({
   },
   optionsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     marginBottom: 16,
   },
   optionBtn: {
@@ -108,16 +123,11 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    marginRight: 12,
+    marginRight: 10,
+    marginBottom: 12,
   },
   selectedColorBorder: {
     borderWidth: 2,
     borderColor: '#1e293b',
-  },
-  previewCard: {
-    marginTop: 30,
-    padding: 20,
-    borderRadius: 12,
-    alignItems: 'center',
   },
 });

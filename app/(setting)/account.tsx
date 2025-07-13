@@ -1,17 +1,22 @@
-import {View, Text, StyleSheet} from 'react-native'
+import { View, StyleSheet, Text } from 'react-native';
+import { useAppTheme } from '@/context/ThemeContext'; // 👈 Theme hook
 
-export default function AccountScreen(){
-    return(
-        <View style={styles.main}>
-            <Text>Accounts</Text>
-        </View>
-    );
+export default function AccountScreen() {
+  const { colors } = useAppTheme(); // 🎨 Access theme colors
+
+  return (
+    <View style={[styles.main, { backgroundColor: colors.background }]}>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    main:{
-        flex: 1,
-        backgroundColor: '#fdfdfd',
-        padding: 16,
-    }
-})
+  main: {
+    flex: 1,
+    padding: 16,
+  },
+  text: {
+    fontSize: 18,
+    fontWeight: '500',
+  },
+});
