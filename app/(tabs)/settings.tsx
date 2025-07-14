@@ -43,16 +43,6 @@ export default function SettingScreen() {
       <TouchableOpacity
         accessible={true}
         accessibilityLabel="Tap me!"
-        onPress={()=> router.push("/(setting)/languages")}>
-        <View style={styles.settingsInfo}>
-          <Text style={[styles.accountTitle, { color: textColor }]}>App language</Text>
-          <Text style={[styles.accountText, { color: textColor }]}>English(device's language)</Text>
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        accessible={true}
-        accessibilityLabel="Tap me!"
         onPress={()=> router.push("/(setting)/theme")}>
         <View style={styles.settingsInfo}>
           <Text style={[styles.accountTitle, { color: textColor }]}>Theme</Text>

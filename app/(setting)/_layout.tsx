@@ -20,7 +20,6 @@ export default function SettingsLayout() {
       <Stack.Screen name="account" options={{ title: 'Account' }} />
       <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="storage" options={{ title: 'Storage and Data' }} />
-      <Stack.Screen name="languages" options={{ title: 'App Language' }} />
       <Stack.Screen name="theme" options={{ title: 'Themes' }} />
       <Stack.Screen name="help" options={{ title: 'Help Center' }} />
       <Stack.Screen name="about" options={{ title: 'About' }} />
