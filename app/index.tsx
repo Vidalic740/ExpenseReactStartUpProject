@@ -13,8 +13,12 @@ import { useAppTheme } from '../context/ThemeContext';
 
 export default function HomeScreen() {
   const { theme, colors } = useAppTheme();
-  const[email, setEmail] = useState('');
-  const[password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  // State to track focus for each input
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -51,7 +55,7 @@ export default function HomeScreen() {
       end={{ x: 0, y: 0 }}
       style={styles.container}
     >
-      <Text style={[styles.header, { color: colors.text }]}>Hello!{'\n'}Sign in</Text>
+      <Text style={[styles.header, { color: '#ffefff' }]}>Hello!{'\n'}Sign in</Text>
       <View style={[styles.body, { backgroundColor: colors.card }]}>
         <View style={styles.inputWrapper}>
           <Text style={[styles.label, { color: colors.text }]}>Email</Text>
@@ -61,8 +65,10 @@ export default function HomeScreen() {
             autoCapitalize="none"
             value={email}
             onChangeText={setEmail}
-            placeholder="Enter email"
+            placeholder={emailFocused ? '' : 'example@email.com'}
             placeholderTextColor={colors.subText}
+            onFocus={() => setEmailFocused(true)}
+            onBlur={() => setEmailFocused(false)}
           />
         </View>
         <View style={styles.inputWrapper}>
@@ -73,8 +79,10 @@ export default function HomeScreen() {
             value={password}
             onChangeText={setPassword}
             autoCapitalize="none"
-            placeholder="Enter password"
+            placeholder={passwordFocused ? '' : '••••••••'}
             placeholderTextColor={colors.subText}
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => setPasswordFocused(false)}
           />
         </View>
 
@@ -82,7 +90,7 @@ export default function HomeScreen() {
           <Text style={[styles.reset, { color: colors.accent }]}>Forgot Password</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleLogin}>
+        <TouchableOpacity onPress={() => router.push('/home')}>
           <View style={[styles.button, { backgroundColor: colors.accent }]}>
             <Text style={styles.btnText}>Login</Text>
           </View>

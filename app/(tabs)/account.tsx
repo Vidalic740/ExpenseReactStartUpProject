@@ -25,7 +25,6 @@ export default function AccountScreen() {
         <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
           {[
             { label: 'Account number', value: '' },
-            { label: 'Password', action: 'Change' },
             { label: 'Phone number', action: 'Edit' },
             { label: 'Email', value:'' },
             { label: 'Registration date', value: '' },

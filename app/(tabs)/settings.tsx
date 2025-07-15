@@ -1,89 +1,107 @@
 import { useAppTheme } from '@/context/ThemeContext';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SettingScreen() {
-
-  const { colors, theme } = useAppTheme();
-  const backgroundColor = theme === 'dark' ? '#1e293b' : '#fdfdfd';
-  const textColor = theme === 'dark' ? '#f1f5f9' : '#1e293b';
+  const { colors } = useAppTheme();
 
   return (
-    <View style={[styles.main, { backgroundColor: colors.background  }]}>
-      <TouchableOpacity
-      accessible={true}
-      accessibilityLabel="Tap me!"
-      onPress={()=> router.push("/(setting)/account")}>
+    <View style={[styles.main, { backgroundColor: colors.background }]}>
+      <TouchableOpacity onPress={() => router.push("/(setting)/account")}>
         <View style={styles.settingsInfo}>
-          <Text style={[styles.accountTitle, { color: textColor }]}>Account</Text>
-          <Text style={[styles.accountText, { color: textColor }]}>Request account info, two-step verification</Text>
+          <View style={styles.row}>
+            <Feather name="user" size={18} color={colors.text} style={styles.icon} />
+            <View>
+              <Text style={[styles.accountTitle, { color: colors.text }]}>Account</Text>
+              <Text style={[styles.accountText, { color: colors.subText || colors.text }]}>
+                Request account info, two-step verification
+              </Text>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        accessible={true}
-        accessibilityLabel="Tap me!"
-        onPress={()=> router.push("/(setting)/notifications")}>
+      <TouchableOpacity onPress={() => router.push("/(setting)/notifications")}>
         <View style={styles.settingsInfo}>
-          <Text style={[styles.accountTitle, { color: textColor }]}>Notifications</Text>
-          <Text style={[styles.accountText, { color: textColor }]}>Reminders, messages</Text>
+          <View style={styles.row}>
+            <Feather name="bell" size={18} color={colors.text} style={styles.icon} />
+            <View>
+              <Text style={[styles.accountTitle, { color: colors.text }]}>Notifications</Text>
+              <Text style={[styles.accountText, { color: colors.subText || colors.text }]}>
+                Reminders, messages
+              </Text>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        accessible={true}
-        accessibilityLabel="Tap me!"
-        onPress={()=> router.push("/(setting)/storage")}>
+      <TouchableOpacity onPress={() => router.push("/(setting)/storage")}>
         <View style={styles.settingsInfo}>
-          <Text style={[styles.accountTitle, { color: textColor }]}>Storage and data</Text>
-          <Text style={[styles.accountText, { color: textColor }]}>Data usage, memory size</Text>
+          <View style={styles.row}>
+            <Feather name="database" size={18} color={colors.text} style={styles.icon} />
+            <View>
+              <Text style={[styles.accountTitle, { color: colors.text }]}>Storage and data</Text>
+              <Text style={[styles.accountText, { color: colors.subText || colors.text }]}>
+                Data usage, memory size
+              </Text>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        accessible={true}
-        accessibilityLabel="Tap me!"
-        onPress={()=> router.push("/(setting)/theme")}>
+      <TouchableOpacity onPress={() => router.push("/(setting)/theme")}>
         <View style={styles.settingsInfo}>
-          <Text style={[styles.accountTitle, { color: textColor }]}>Theme</Text>
-          <Text style={[styles.accountText, { color: textColor }]}>Color</Text>
+          <View style={styles.row}>
+            <Feather name="moon" size={18} color={colors.text} style={styles.icon} />
+            <View>
+              <Text style={[styles.accountTitle, { color: colors.text }]}>Theme</Text>
+              <Text style={[styles.accountText, { color: colors.subText || colors.text }]}>
+                Color
+              </Text>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        accessible={true}
-        accessibilityLabel="Tap me!"
-        onPress={()=> router.push("/(setting)/help")}>
+      <TouchableOpacity onPress={() => router.push("/(setting)/help")}>
         <View style={styles.settingsInfo}>
-          <Text style={[styles.accountTitle, { color: textColor }]}>Help</Text>
-          <Text style={[styles.accountText, { color: textColor }]}>Help center, contact us, privacy policy</Text>
+          <View style={styles.row}>
+            <Feather name="help-circle" size={18} color={colors.text} style={styles.icon} />
+            <View>
+              <Text style={[styles.accountTitle, { color: colors.text }]}>Help</Text>
+              <Text style={[styles.accountText, { color: colors.subText || colors.text }]}>
+                Help center, contact us, privacy policy
+              </Text>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        accessible={true}
-        accessibilityLabel="Tap me!"
-        onPress={()=> router.push("/(setting)/about")}>
+      <TouchableOpacity onPress={() => router.push("/(setting)/about")}>
         <View style={styles.settingsInfo}>
-        <Text style={[styles.accountTitle, { color: textColor }]}>About</Text>
+          <View style={styles.row}>
+            <Feather name="info" size={18} color={colors.text} style={styles.icon} />
+            <Text style={[styles.accountTitle, { color: colors.text }]}>About</Text>
+          </View>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        accessible={true}
-        accessibilityLabel="Tap me!"
-        onPress={()=> router.push("/(setting)/invite")}>
+      <TouchableOpacity onPress={() => router.push("/(setting)/invite")}>
         <View style={styles.settingsInfo}>
-        <Text style={[styles.accountTitle, { color: textColor }]}>Invite a friend</Text>
+          <View style={styles.row}>
+            <Feather name="user-plus" size={18} color={colors.text} style={styles.icon} />
+            <Text style={[styles.accountTitle, { color: colors.text }]}>Invite a friend</Text>
+          </View>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        accessible={true}
-        accessibilityLabel="Tap me!"
-        onPress={()=> router.push("/(setting)/updates")}>
+      <TouchableOpacity onPress={() => router.push("/(setting)/updates")}>
         <View style={styles.settingsInfo}>
-        <Text style={[styles.accountTitle, { color: textColor }]}>App updates</Text>
+          <View style={styles.row}>
+            <MaterialIcons name="system-update" size={18} color={colors.text} style={styles.icon} />
+            <Text style={[styles.accountTitle, { color: colors.text }]}>App updates</Text>
+          </View>
         </View>
       </TouchableOpacity>
     </View>
@@ -106,12 +124,21 @@ const styles = StyleSheet.create({
   },
 
   accountTitle:{
-    fontSize: 18,
+    fontSize: 17,
     color: '#000'
   },
 
   accountText:{
-    fontSize: 14,
-    marginTop: 5,
+    fontSize: 13,
+    marginTop: 2,
   },
-});
+
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  icon: {
+    marginRight: 12,
+  },
+}); 

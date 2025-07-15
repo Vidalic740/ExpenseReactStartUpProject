@@ -58,7 +58,7 @@ export default function HomeScreen() {
         >
           <View style={styles.cardItem}>
             <MaterialCommunityIcons name="wallet" size={24} color="#fff" />
-              <Text style={styles.title}>Total Account</Text>
+              <Text style={styles.title}>Total Amount</Text>
               <Text style={styles.value}>Ksh. 20,000</Text>
           </View>
           <View style={styles.cardItem}>

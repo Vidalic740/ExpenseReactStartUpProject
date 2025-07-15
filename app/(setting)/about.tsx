@@ -1,12 +1,11 @@
 import { useAppTheme } from '@/context/ThemeContext'; // 👈 Theme hook
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 export default function AboutScreen() {
   const { colors } = useAppTheme(); // 🎨 Access theme colors
 
   return (
     <View style={[styles.main, { backgroundColor: colors.background }]}>
-      <Text style={[styles.text, { color: colors.text }]}>Languages</Text>
     </View>
   );
 }

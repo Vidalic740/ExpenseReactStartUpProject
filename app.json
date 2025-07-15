@@ -8,6 +8,11 @@
     "scheme": "expense",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/49a1144d-290f-4f6e-8ab7-26a00354db53"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -45,6 +50,9 @@
         "projectId": "49a1144d-290f-4f6e-8ab7-26a00354db53"
       }
     },
-    "owner": "vidalic740"
+    "owner": "vidalic740",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }
