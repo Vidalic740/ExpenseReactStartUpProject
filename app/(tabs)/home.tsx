@@ -143,7 +143,18 @@ export default function HomeScreen() {
               <Text style={[styles.transactionName, { color: textColor }]}>Rent</Text>
               <Text style={[styles.transactionDesc, { color: fadedText }]}>Expense • Yesterday</Text>
             </View>
-            <Text style={styles.transactionAmountNegative}>-Ksh. 2,500</Text>
+            <Text style={styles.transactionAmountNegative}>-Ksh. 3,500</Text>
+          </View>
+
+          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
+            <View style={[styles.iconWrapper, { backgroundColor: '#fee2e2' }]}>
+              <MaterialCommunityIcons name="arrow-down-bold" size={20} color="#dc2626" />
+            </View>
+            <View style={styles.transactionInfo}>
+              <Text style={[styles.transactionName, { color: textColor }]}>Fuel</Text>
+              <Text style={[styles.transactionDesc, { color: fadedText }]}>Expense • Yesterday</Text>
+            </View>
+            <Text style={styles.transactionAmountNegative}>-Ksh. 3,500</Text>
           </View>
         </View>
       </View>

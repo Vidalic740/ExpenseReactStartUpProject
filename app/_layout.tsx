@@ -17,6 +17,7 @@ function AppLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(add)" options={{ headerShown: false }} />
         <Stack.Screen name="(setting)" options={{ headerShown: false }} />
+        <Stack.Screen name="(screens)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
