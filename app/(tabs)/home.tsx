@@ -157,6 +157,39 @@ export default function HomeScreen() {
             <Text style={styles.transactionAmountNegative}>-Ksh. 3,500</Text>
           </View>
         </View>
+
+        {/* Upcoming Bills */}
+        <View style={[styles.transactionsCard, { backgroundColor: cardBg }]}>
+          <View style={styles.transactionsHeader}>
+            <Text style={[styles.transactionsTitle, { color: textColor }]}>Upcoming Bills</Text>
+            <TouchableOpacity>
+              <Text style={{ color: colors.accent }}>View All</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
+            <View style={[styles.iconWrapper, { backgroundColor: '#fef9c3' }]}>
+              <MaterialCommunityIcons name="flash" size={20} color="#f59e0b" />
+            </View>
+            <View style={styles.transactionInfo}>
+              <Text style={[styles.transactionName, { color: textColor }]}>Electricity</Text>
+                <Text style={[styles.transactionDesc, { color: fadedText }]}>Due • 25 Jul</Text>
+            </View>
+            <Text style={styles.transactionAmountNegative}>-Ksh. 1,800</Text>
+          </View>
+
+          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
+            <View style={[styles.iconWrapper, { backgroundColor: '#dbeafe' }]}>
+              <MaterialCommunityIcons name="wifi" size={20} color="#3b82f6" />
+            </View>
+            <View style={styles.transactionInfo}>
+              <Text style={[styles.transactionName, { color: textColor }]}>Internet</Text>
+              <Text style={[styles.transactionDesc, { color: fadedText }]}>Due • 28 Jul</Text>
+            </View>
+              <Text style={styles.transactionAmountNegative}>-Ksh. 2,200</Text>
+          </View>
+        </View>
+
       </View>
     </ScrollView>
   );
