@@ -42,9 +42,14 @@ export default function HomeScreen() {
     <ScrollView style={[styles.display, { backgroundColor: colors.background }]}>
       <View style={styles.main}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.greetings, { color: textColor }]}>Good Morning! 👋</Text>
-          <Text style={[styles.username, { color: fadedText }]}>Welcome back, Fullname</Text>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={[styles.greetings, { color: textColor }]}>Good Morning! 👋</Text>
+            <Text style={[styles.username, { color: fadedText }]}>Welcome back, Fullname</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push('/(wallet)/add')}>
+            <MaterialCommunityIcons name="wallet-plus" size={28} color={colors.accent} />
+          </TouchableOpacity>
         </View>
 
         {/* Financial Overview */}
@@ -198,7 +203,14 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   display: { flexGrow: 1 },
   main: { flex: 1, padding: 16 },
-  header: { marginTop: 12, marginBottom: 20 },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  
   greetings: { fontSize: 24, fontWeight: '700' },
   username: { fontSize: 16 },
   card: {
