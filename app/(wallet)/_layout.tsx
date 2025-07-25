@@ -17,7 +17,7 @@ export default function AddLayout() {
         },
       }}
     >
-      <Stack.Screen name="add" options={{ title: 'Add Wallet' }} />
+      <Stack.Screen name="add" options={{ title: 'Wallets' }} />
     </Stack>
   );
 }

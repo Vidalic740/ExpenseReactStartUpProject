@@ -12,7 +12,8 @@ const themes = {
     input: '#ffffff',
     border: '#cbd5e1',
     subText: '#64748B',
-    accent: '#059669', // default
+    accent: '#059669',
+    surface: '#ffffff',
   },
   dark: {
     mode: 'dark',
@@ -22,7 +23,8 @@ const themes = {
     subText: '#94a3b8',
     input: '#334155',
     border: '#475569',
-    accent: '#a855f7', // default
+    accent: '#a855f7',
+    surface: '#1a1a1a',
   },
 };
 

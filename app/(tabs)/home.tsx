@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 20,
   },
-  
+
   greetings: { fontSize: 24, fontWeight: '700' },
   username: { fontSize: 16 },
   card: {
