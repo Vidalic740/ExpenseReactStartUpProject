@@ -14,7 +14,8 @@
       "url": "https://u.expo.dev/49a1144d-290f-4f6e-8ab7-26a00354db53"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vidalic740.expense"
     },
     "android": {
       "adaptiveIcon": {
@@ -51,8 +52,6 @@
       }
     },
     "owner": "vidalic740",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    }
+    "runtimeVersion": "1.0.0"
   }
 }

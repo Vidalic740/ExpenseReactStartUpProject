@@ -2,8 +2,9 @@ import { useAppTheme } from '@/context/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
 const screenWidth = Dimensions.get('window').width;
@@ -16,30 +17,64 @@ export default function HomeScreen() {
   const textColor = isDark ? '#f1f5f9' : '#1e293b';
   const fadedText = isDark ? '#94a3b8' : '#64748B';
 
+  type Transaction = {
+    id: string;
+    title: string;
+    amount: number | string;
+    type: 'income' | 'expense';
+    date: string;
+  };
+
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+  const fetchTransactions = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('userToken');
+      if (!token) {
+        Alert.alert('Authentication Error', 'No token found. Please login again.');
+        return;
+      }
+
+      const res = await fetch('http://192.168.70.19:3000/api/transactions', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setTransactions(data);
+      } else {
+        Alert.alert('Error', data.message || 'Failed to fetch transactions.');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Network Error', 'Could not load transactions.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTransactions();
+}, []);
+
+
   const chartData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     datasets: [
-      {
-        data: [45000, 52000, 48000, 55000, 50000, 58000],
-        color: () => '#34D399',
-        strokeWidth: 2,
-      },
-      {
-        data: [32000, 38000, 35000, 42000, 39000, 45000],
-        color: () => '#A855F7',
-        strokeWidth: 2,
-      },
-      {
-        data: [13000, 14000, 13000, 13000, 11000, 13000],
-        color: () => '#22D3EE',
-        strokeWidth: 2,
-      },
+      { data: [45000, 52000, 48000, 55000, 50000, 58000], color: () => '#34D399', strokeWidth: 2 },
+      { data: [32000, 38000, 35000, 42000, 39000, 45000], color: () => '#A855F7', strokeWidth: 2 },
+      { data: [13000, 14000, 13000, 13000, 11000, 13000], color: () => '#22D3EE', strokeWidth: 2 },
     ],
     legend: ['Income', 'Expense', 'Savings'],
   };
 
   return (
-    <ScrollView style={[styles.display, { backgroundColor: colors.background }]}>
+    <ScrollView style={[styles.display, { backgroundColor }]}>
       <View style={styles.main}>
         {/* Header */}
         <View style={styles.headerRow}>
@@ -55,29 +90,26 @@ export default function HomeScreen() {
         {/* Financial Overview */}
         <LinearGradient
           colors={
-            isDark
-              ? ['#2C002E', '#13203C', '#030F1A'] // Dark-silver gradient for dark mode
-              : ['#059669', '#537A9F', '#28527A'] // Green for light mode
+            isDark ? ['#2C002E', '#13203C', '#030F1A'] : ['#059669', '#537A9F', '#28527A']
           }
           style={styles.card}
         >
           <View style={styles.cardItem}>
             <MaterialCommunityIcons name="wallet" size={24} color="#fff" />
-              <Text style={styles.title}>Total Amount</Text>
-              <Text style={styles.value}>Ksh. 20,000</Text>
+            <Text style={styles.title}>Total Amount</Text>
+            <Text style={styles.value}>Ksh. 20,000</Text>
           </View>
           <View style={styles.cardItem}>
             <MaterialCommunityIcons name="trending-down" size={24} color="#fff" />
-              <Text style={styles.title}>Expense</Text>
-              <Text style={styles.value}>Ksh. 5,000</Text>
+            <Text style={styles.title}>Expense</Text>
+            <Text style={styles.value}>Ksh. 5,000</Text>
           </View>
           <View style={styles.cardItem}>
             <MaterialCommunityIcons name="cash" size={24} color="#fff" />
-              <Text style={styles.title}>Available Balance</Text>
-              <Text style={styles.value}>Ksh. 15,000</Text>
+            <Text style={styles.title}>Available Balance</Text>
+            <Text style={styles.value}>Ksh. 15,000</Text>
           </View>
         </LinearGradient>
-
 
         {/* Quick Actions */}
         <View style={styles.btnHolder}>
@@ -89,7 +121,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Financial Insights Chart */}
+        {/* Chart */}
         <View style={[styles.chartCard, { backgroundColor: isDark ? '#0f172a' : '#e2e8f0' }]}>
           <LineChart
             data={chartData}
@@ -113,88 +145,52 @@ export default function HomeScreen() {
         <View style={[styles.transactionsCard, { backgroundColor: cardBg }]}>
           <View style={styles.transactionsHeader}>
             <Text style={[styles.transactionsTitle, { color: textColor }]}>Recent Transactions</Text>
-            <TouchableOpacity>
-              <Text style={{ color: colors.accent }}>View All</Text>
-            </TouchableOpacity>
+            <TouchableOpacity><Text style={{ color: colors.accent }}>View All</Text></TouchableOpacity>
           </View>
 
-          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
-            <View style={styles.iconWrapper}>
-              <MaterialCommunityIcons name="arrow-up-bold" size={20} color="#059669" />
-            </View>
-            <View style={styles.transactionInfo}>
-              <Text style={[styles.transactionName, { color: textColor }]}>Salary</Text>
-              <Text style={[styles.transactionDesc, { color: fadedText }]}>Income • Today</Text>
-            </View>
-            <Text style={styles.transactionAmountPositive}>+Ksh. 50,000</Text>
-          </View>
-
-          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
-            <View style={[styles.iconWrapper, { backgroundColor: '#fee2e2' }]}>
-              <MaterialCommunityIcons name="arrow-down-bold" size={20} color="#dc2626" />
-            </View>
-            <View style={styles.transactionInfo}>
-              <Text style={[styles.transactionName, { color: textColor }]}>Groceries</Text>
-              <Text style={[styles.transactionDesc, { color: fadedText }]}>Expense • Yesterday</Text>
-            </View>
-            <Text style={styles.transactionAmountNegative}>-Ksh. 2,500</Text>
-          </View>
-
-          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
-            <View style={[styles.iconWrapper, { backgroundColor: '#fee2e2' }]}>
-              <MaterialCommunityIcons name="arrow-down-bold" size={20} color="#dc2626" />
-            </View>
-            <View style={styles.transactionInfo}>
-              <Text style={[styles.transactionName, { color: textColor }]}>Rent</Text>
-              <Text style={[styles.transactionDesc, { color: fadedText }]}>Expense • Yesterday</Text>
-            </View>
-            <Text style={styles.transactionAmountNegative}>-Ksh. 3,500</Text>
-          </View>
-
-          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
-            <View style={[styles.iconWrapper, { backgroundColor: '#fee2e2' }]}>
-              <MaterialCommunityIcons name="arrow-down-bold" size={20} color="#dc2626" />
-            </View>
-            <View style={styles.transactionInfo}>
-              <Text style={[styles.transactionName, { color: textColor }]}>Fuel</Text>
-              <Text style={[styles.transactionDesc, { color: fadedText }]}>Expense • Yesterday</Text>
-            </View>
-            <Text style={styles.transactionAmountNegative}>-Ksh. 3,500</Text>
-          </View>
+          {loading ? (
+            <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 20 }} />
+          ) : transactions.length === 0 ? (
+            <Text style={{ color: fadedText }}>No transactions found.</Text>
+          ) : (
+            transactions.slice(0, 4).map((tx) => (
+              <View
+                key={tx.id}
+                style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}
+              >
+                <View
+                  style={[
+                    styles.iconWrapper,
+                    {
+                      backgroundColor: tx.type === 'income' ? '#d1fae5' : '#fee2e2',
+                    },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name={tx.type === 'income' ? 'arrow-up-bold' : 'arrow-down-bold'}
+                    size={20}
+                    color={tx.type === 'income' ? '#059669' : '#dc2626'}
+                  />
+                </View>
+                <View style={styles.transactionInfo}>
+                  <Text style={[styles.transactionName, { color: textColor }]}>{tx.title}</Text>
+                  <Text style={[styles.transactionDesc, { color: fadedText }]}>
+                    {tx.type.charAt(0).toUpperCase() + tx.type.slice(1)} • {new Date(tx.date).toLocaleDateString()}
+                  </Text>
+                </View>
+                <Text
+                  style={
+                    tx.type === 'income'
+                      ? styles.transactionAmountPositive
+                      : styles.transactionAmountNegative
+                  }
+                >
+                  {tx.type === 'income' ? '+' : '-'}Ksh. {Number(tx.amount).toLocaleString()}
+                </Text>
+              </View>
+            ))
+          )}
         </View>
-
-        {/* Upcoming Bills */}
-        <View style={[styles.transactionsCard, { backgroundColor: cardBg }]}>
-          <View style={styles.transactionsHeader}>
-            <Text style={[styles.transactionsTitle, { color: textColor }]}>Upcoming Bills</Text>
-            <TouchableOpacity>
-              <Text style={{ color: colors.accent }}>View All</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
-            <View style={[styles.iconWrapper, { backgroundColor: '#fef9c3' }]}>
-              <MaterialCommunityIcons name="flash" size={20} color="#f59e0b" />
-            </View>
-            <View style={styles.transactionInfo}>
-              <Text style={[styles.transactionName, { color: textColor }]}>Electricity</Text>
-                <Text style={[styles.transactionDesc, { color: fadedText }]}>Due • 25 Jul</Text>
-            </View>
-            <Text style={styles.transactionAmountNegative}>-Ksh. 1,800</Text>
-          </View>
-
-          <View style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
-            <View style={[styles.iconWrapper, { backgroundColor: '#dbeafe' }]}>
-              <MaterialCommunityIcons name="wifi" size={20} color="#3b82f6" />
-            </View>
-            <View style={styles.transactionInfo}>
-              <Text style={[styles.transactionName, { color: textColor }]}>Internet</Text>
-              <Text style={[styles.transactionDesc, { color: fadedText }]}>Due • 28 Jul</Text>
-            </View>
-              <Text style={styles.transactionAmountNegative}>-Ksh. 2,200</Text>
-          </View>
-        </View>
-
       </View>
     </ScrollView>
   );

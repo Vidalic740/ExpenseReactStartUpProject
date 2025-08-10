@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -13,10 +14,11 @@ import { useAppTheme } from '../context/ThemeContext';
 
 export default function HomeScreen() {
   const { theme, colors } = useAppTheme();
+  const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // State to track focus for each input
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
@@ -27,7 +29,7 @@ export default function HomeScreen() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/login', {
+      const response = await fetch('http://192.168.70.19:3000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,7 +39,11 @@ export default function HomeScreen() {
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
+      if (response.ok && data.token) {
+        await SecureStore.setItemAsync('userToken', data.token);
+        console.log('Saved token:', await SecureStore.getItemAsync('userToken'));
+
+        // Redirect on successful login
         router.push('/home');
       } else {
         Alert.alert('Login Failed', data.message || 'Invalid credentials.');
@@ -90,7 +96,7 @@ export default function HomeScreen() {
           <Text style={[styles.reset, { color: colors.accent }]}>Forgot Password</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/home')}>
+        <TouchableOpacity onPress={handleLogin}>
           <View style={[styles.button, { backgroundColor: colors.accent }]}>
             <Text style={styles.btnText}>Login</Text>
           </View>
