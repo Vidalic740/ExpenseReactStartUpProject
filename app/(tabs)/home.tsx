@@ -38,9 +38,9 @@ export default function HomeScreen() {
         return;
       }
 
-      const res = await fetch('http://192.168.70.19:3000/api/transactions', {
+      const res = await fetch('http://192.168.0.109:3000/api/transactions', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -60,6 +60,10 @@ export default function HomeScreen() {
   };
 
   fetchTransactions();
+
+  const intervalId = setInterval(fetchTransactions, 10000); // every 10 seconds
+
+  return () => clearInterval(intervalId);
 }, []);
 
 
