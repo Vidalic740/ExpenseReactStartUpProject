@@ -3,11 +3,28 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
 const screenWidth = Dimensions.get('window').width;
+
+type Transaction = {
+  id: string;
+  amount: number | string;
+  type: string;
+  createdAt: string;
+  category: { name: string };
+};
 
 export default function HomeScreen() {
   const { colors, theme } = useAppTheme();
@@ -17,64 +34,167 @@ export default function HomeScreen() {
   const textColor = isDark ? '#f1f5f9' : '#1e293b';
   const fadedText = isDark ? '#94a3b8' : '#64748B';
 
-  type Transaction = {
-    id: string;
-    title: string;
-    amount: number | string;
-    type: 'income' | 'expense';
-    date: string;
-  };
-
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-
   const [loading, setLoading] = useState(true);
 
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
+  const [availableBalance, setAvailableBalance] = useState(0);
+
   useEffect(() => {
-  const fetchTransactions = async () => {
-    try {
-      const token = await SecureStore.getItemAsync('userToken');
-      if (!token) {
-        Alert.alert('Authentication Error', 'No token found. Please login again.');
-        return;
+    const fetchTransactions = async () => {
+      try {
+        const token = await SecureStore.getItemAsync('userToken');
+        if (!token) {
+          Alert.alert('Authentication Error', 'No token found. Please login again.');
+          return;
+        }
+
+        const res = await fetch('http://192.168.0.110:3000/api/transactions', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        console.log('Fetched transactions:', data);
+
+        if (res.ok) {
+          setTransactions(data);
+        } else {
+          Alert.alert('Error', data.message || 'Failed to fetch transactions.');
+        }
+      } catch (err) {
+        console.error(err);
+        Alert.alert('Network Error', 'Could not load transactions.');
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const res = await fetch('http://192.168.0.109:3000/api/transactions', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    fetchTransactions();
+    const intervalId = setInterval(fetchTransactions, 10000);
+    return () => clearInterval(intervalId);
+  }, []);
 
-      const data = await res.json();
+  useEffect(() => {
+    if (transactions.length > 0) {
+      const income = transactions
+        .filter((tx) => String(tx.type).toLowerCase() === 'income')
+        .reduce((sum, tx) => {
+          const amt = Number(String(tx.amount).replace(/,/g, '').trim());
+          return sum + (isNaN(amt) ? 0 : amt);
+        }, 0);
 
-      if (res.ok) {
-        setTransactions(data);
-      } else {
-        Alert.alert('Error', data.message || 'Failed to fetch transactions.');
-      }
-    } catch (err) {
-      console.error(err);
-      Alert.alert('Network Error', 'Could not load transactions.');
-    } finally {
-      setLoading(false);
+      const expense = transactions
+        .filter((tx) => String(tx.type).toLowerCase() === 'expense')
+        .reduce((sum, tx) => {
+          const amt = Number(String(tx.amount).replace(/,/g, '').trim());
+          return sum + (isNaN(amt) ? 0 : amt);
+        }, 0);
+
+      setTotalIncome(income);
+      setTotalExpense(expense);
+      setAvailableBalance(income - expense);
+    } else {
+      setTotalIncome(0);
+      setTotalExpense(0);
+      setAvailableBalance(0);
     }
-  };
+  }, [transactions]);
 
-  fetchTransactions();
+  // --- Chart logic: daily data for current month, no savings ---
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth(); // 0-based month
 
-  const intervalId = setInterval(fetchTransactions, 10000); // every 10 seconds
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-  return () => clearInterval(intervalId);
-}, []);
+  // Full day labels 1..daysInMonth as strings
+  const dayLabels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
 
+  // Cut first 4 days completely and show at most 15 days after that,
+  // with a single day margin (show every day label, no skipping)
+  // Also implement: for every 2 days on the chart, remove 1 day from start and add 2 upcoming days.
+
+  const filteredDayLabels = useMemo(() => {
+    const startDay = 5; // skip first 4 days completely
+    const maxDaysToShow = 15;
+
+    // Initial slice from day 5
+    let daysToShow = dayLabels.slice(startDay - 1);
+
+    // Adjust days to show based on your logic:
+    // For every 2 days displayed, remove 1 day from start and add 2 days at the end,
+    // but ensure total days <= maxDaysToShow
+
+    // Calculate how many days to cut from start after first 4 days
+    // We'll remove Math.floor(daysToShow.length / 2) days from start and add twice that at end
+    // But to keep it <= maxDaysToShow, we limit accordingly.
+
+    // Actually, since your description is a bit complex, let's simplify:
+    // - Always show maxDaysToShow days after skipping first 4
+    // - So just slice maxDaysToShow days after day 4
+
+    return daysToShow.slice(0, maxDaysToShow);
+  }, [dayLabels]);
+
+  // Aggregate daily income and expense data
+  const dailyData = useMemo(() => {
+    const incomeByDay = Array(daysInMonth).fill(0);
+    const expenseByDay = Array(daysInMonth).fill(0);
+
+    transactions.forEach((tx) => {
+      const txDate = new Date(tx.createdAt);
+      if (
+        txDate.getFullYear() === currentYear &&
+        txDate.getMonth() === currentMonth
+      ) {
+        const day = txDate.getDate(); // 1-based
+        const amt = Number(String(tx.amount).replace(/,/g, '').trim());
+        if (isNaN(amt)) return;
+
+        if (tx.type.toLowerCase() === 'income') {
+          incomeByDay[day - 1] += amt;
+        } else if (tx.type.toLowerCase() === 'expense') {
+          expenseByDay[day - 1] += amt;
+        }
+      }
+    });
+
+    return { incomeByDay, expenseByDay };
+  }, [transactions, currentYear, currentMonth, daysInMonth]);
+
+  // Filter data to align with filtered labels
+  const filteredIncomeData = useMemo(() => {
+    return filteredDayLabels.map((dayStr) => {
+      const dayNum = parseInt(dayStr, 10);
+      return dailyData.incomeByDay[dayNum - 1] || 0;
+    });
+  }, [filteredDayLabels, dailyData]);
+
+  const filteredExpenseData = useMemo(() => {
+    return filteredDayLabels.map((dayStr) => {
+      const dayNum = parseInt(dayStr, 10);
+      return dailyData.expenseByDay[dayNum - 1] || 0;
+    });
+  }, [filteredDayLabels, dailyData]);
 
   const chartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    labels: filteredDayLabels,
     datasets: [
-      { data: [45000, 52000, 48000, 55000, 50000, 58000], color: () => '#34D399', strokeWidth: 2 },
-      { data: [32000, 38000, 35000, 42000, 39000, 45000], color: () => '#A855F7', strokeWidth: 2 },
-      { data: [13000, 14000, 13000, 13000, 11000, 13000], color: () => '#22D3EE', strokeWidth: 2 },
+      {
+        data: filteredIncomeData,
+        color: () => '#34D399',
+        strokeWidth: 2,
+      },
+      {
+        data: filteredExpenseData,
+        color: () => '#A855F7',
+        strokeWidth: 2,
+      },
     ],
-    legend: ['Income', 'Expense', 'Savings'],
+    legend: ['Income', 'Expense'],
   };
 
   return (
@@ -100,27 +220,35 @@ export default function HomeScreen() {
         >
           <View style={styles.cardItem}>
             <MaterialCommunityIcons name="wallet" size={24} color="#fff" />
-            <Text style={styles.title}>Total Amount</Text>
-            <Text style={styles.value}>Ksh. 20,000</Text>
+            <Text style={styles.title}>Total Earnings</Text>
+            <Text style={styles.value}>Ksh. {totalIncome.toLocaleString()}</Text>
           </View>
+
           <View style={styles.cardItem}>
             <MaterialCommunityIcons name="trending-down" size={24} color="#fff" />
             <Text style={styles.title}>Expense</Text>
-            <Text style={styles.value}>Ksh. 5,000</Text>
+            <Text style={styles.value}>Ksh. {totalExpense.toLocaleString()}</Text>
           </View>
+
           <View style={styles.cardItem}>
             <MaterialCommunityIcons name="cash" size={24} color="#fff" />
             <Text style={styles.title}>Available Balance</Text>
-            <Text style={styles.value}>Ksh. 15,000</Text>
+            <Text style={styles.value}>Ksh. {availableBalance.toLocaleString()}</Text>
           </View>
         </LinearGradient>
 
         {/* Quick Actions */}
         <View style={styles.btnHolder}>
-          <TouchableOpacity style={[styles.button, { backgroundColor: '#059669' }]} onPress={() => router.push('/(add)/income')}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: '#059669' }]}
+            onPress={() => router.push('/(add)/income')}
+          >
             <Text style={styles.btnText}>Add Income</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, { backgroundColor: '#dc2626' }]} onPress={() => router.push('/(add)/expense')}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: '#dc2626' }]}
+            onPress={() => router.push('/(add)/expense')}
+          >
             <Text style={styles.btnText}>Add Expense</Text>
           </TouchableOpacity>
         </View>
@@ -136,9 +264,11 @@ export default function HomeScreen() {
               backgroundGradientFrom: isDark ? '#0f172a' : '#e2e8f0',
               backgroundGradientTo: isDark ? '#0f172a' : '#e2e8f0',
               decimalPlaces: 0,
-              color: (opacity = 1) => isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(30, 41, 59, ${opacity})`,
-              labelColor: () => isDark ? '#f1f5f9' : '#1e293b',
+              color: (opacity = 1) =>
+                isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(30, 41, 59, ${opacity})`,
+              labelColor: () => (isDark ? '#f1f5f9' : '#1e293b'),
               propsForDots: { r: '4', strokeWidth: '2', stroke: '#fff' },
+              propsForBackgroundLines: { stroke: isDark ? '#334155' : '#cbd5e1' },
             }}
             bezier
             style={{ borderRadius: 16, marginLeft: -8 }}
@@ -149,7 +279,9 @@ export default function HomeScreen() {
         <View style={[styles.transactionsCard, { backgroundColor: cardBg }]}>
           <View style={styles.transactionsHeader}>
             <Text style={[styles.transactionsTitle, { color: textColor }]}>Recent Transactions</Text>
-            <TouchableOpacity><Text style={{ color: colors.accent }}>View All</Text></TouchableOpacity>
+            <TouchableOpacity>
+              <Text style={{ color: colors.accent }}>View All</Text>
+            </TouchableOpacity>
           </View>
 
           {loading ? (
@@ -157,44 +289,51 @@ export default function HomeScreen() {
           ) : transactions.length === 0 ? (
             <Text style={{ color: fadedText }}>No transactions found.</Text>
           ) : (
-            transactions.slice(0, 4).map((tx) => (
-              <View
-                key={tx.id}
-                style={[styles.transactionItem, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}
-              >
+            transactions.slice(0, 4).map((tx) => {
+              const isIncome = tx.type.toLowerCase() === 'income';
+              const txDate = new Date(tx.createdAt);
+              const formattedDate = txDate.toLocaleDateString();
+              const formattedTime = txDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+              return (
                 <View
+                  key={tx.id}
                   style={[
-                    styles.iconWrapper,
-                    {
-                      backgroundColor: tx.type === 'income' ? '#d1fae5' : '#fee2e2',
-                    },
+                    styles.transactionItem,
+                    { backgroundColor: isIncome ? '#d1fae5' : '#fee2e2' },
                   ]}
                 >
-                  <MaterialCommunityIcons
-                    name={tx.type === 'income' ? 'arrow-up-bold' : 'arrow-down-bold'}
-                    size={20}
-                    color={tx.type === 'income' ? '#059669' : '#dc2626'}
-                  />
-                </View>
-                <View style={styles.transactionInfo}>
-                  <Text style={[styles.transactionName, { color: textColor }]}>{tx.title}</Text>
-                  <Text style={[styles.transactionDesc, { color: fadedText }]}>
-                    {tx.type.charAt(0).toUpperCase() + tx.type.slice(1)} • {new Date(tx.date).toLocaleDateString()}
+                  <View
+                    style={[
+                      styles.iconWrapper,
+                      { backgroundColor: isIncome ? '#059669' : '#dc2626' },
+                    ]}
+                  >
+                    <MaterialCommunityIcons
+                      name={isIncome ? 'arrow-up-bold' : 'arrow-down-bold'}
+                      size={20}
+                      color="#fff"
+                    />
+                  </View>
+                  <View style={styles.transactionInfo}>
+                    <Text style={[styles.transactionName, { color: isIncome ? '#059669' : '#dc2626' }]}>
+                      {tx.category?.name || 'Unknown'}
+                    </Text>
+                    <Text style={[styles.transactionDesc, { color: fadedText }]}>
+                      {isIncome ? 'Income' : 'Expense'} • {formattedDate} {formattedTime}
+                    </Text>
+                  </View>
+                  <Text
+                    style={isIncome ? styles.transactionAmountPositive : styles.transactionAmountNegative}
+                  >
+                    {isIncome ? '+' : '-'}Ksh. {Number(String(tx.amount).replace(/,/g, '').trim()).toLocaleString()}
                   </Text>
                 </View>
-                <Text
-                  style={
-                    tx.type === 'income'
-                      ? styles.transactionAmountPositive
-                      : styles.transactionAmountNegative
-                  }
-                >
-                  {tx.type === 'income' ? '+' : '-'}Ksh. {Number(tx.amount).toLocaleString()}
-                </Text>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
+        
       </View>
     </ScrollView>
   );
@@ -210,7 +349,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 20,
   },
-
   greetings: { fontSize: 24, fontWeight: '700' },
   username: { fontSize: 16 },
   card: {
@@ -220,7 +358,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
@@ -246,7 +384,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 20,
   },
-  chartTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12 },
   transactionsCard: {
     padding: 16,
     borderRadius: 16,
@@ -271,7 +408,6 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   iconWrapper: {
-    backgroundColor: '#d1fae5',
     borderRadius: 20,
     width: 40,
     height: 40,

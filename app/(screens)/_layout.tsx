@@ -18,6 +18,7 @@ export default function ScreensLayout() {
       }}
     >
       <Stack.Screen name="password" options={{ title: 'Change Password' }} />
+      <Stack.Screen name="profile" options={{ title: 'Update Profile' }} />
       <Stack.Screen name="request" options={{ title: 'Request Account Info' }}/>
       <Stack.Screen name="security" options={{ title: 'Security Questions' }}/>
       <Stack.Screen name="verification" options={{ title: 'Two-Factor Verification' }}/>

@@ -1,8 +1,37 @@
 import { useAppTheme } from '@/context/ThemeContext';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+interface UserProfile {
+  firstname?: string;
+  surname?: string;
+  country?: string;
+  city?: string;
+  dob?: string;
+  phoneNumber?: string;
+  [key: string]: string | undefined;
+}
+
+interface UserData {
+  id?: string;               // Account number
+  email?: string;
+  createdAt?: string;        // Registration date
+  profile?: UserProfile;
+  [key: string]: any;
+}
 
 export default function AccountScreen() {
+  const router = useRouter();
   const { colors, theme } = useAppTheme();
   const isDark = theme === 'dark';
 
@@ -10,24 +39,98 @@ export default function AccountScreen() {
   const cardColor = isDark ? '#334155' : '#dcdcdc';
   const textColor = isDark ? '#f1f5f9' : '#1e293b';
 
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = await SecureStore.getItemAsync('userToken');
+        if (!token) throw new Error('No auth token found');
+
+        const response = await fetch('http://192.168.0.110:3000/api/users/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+
+        const data = await response.json();
+        setUserData(data || null);
+      } catch (error: any) {
+        Alert.alert('Error', error.message || 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={[styles.main, { justifyContent: 'center', alignItems: 'center', flex: 1 }]}>
+        <ActivityIndicator size="large" color={colors.accent || '#000'} />
+      </View>
+    );
+  }
+
+  const mapLabelToKey = (label: string): string => {
+    switch (label) {
+      case 'Firstname':
+        return 'firstname';
+      case 'Surname':
+        return 'surname';
+      case 'Country':
+        return 'country';
+      case 'City':
+        return 'city';
+      case 'Date of Birth':
+        return 'dob';
+      default:
+        return label.toLowerCase().replace(/ /g, '');
+    }
+  };
+
+  const profile = userData?.profile;
+
   return (
-    <ScrollView style={[styles.scroll, { backgroundColor: colors.background  }]}>
+    <ScrollView style={[styles.scroll, { backgroundColor: colors.background }]}>
       <View style={styles.main}>
         <View style={styles.profile}>
-          <View style={[styles.profileImage, { borderColor: isDark ? '#facc15' : '#826529', backgroundColor: backgroundColor }]} />
+          <View
+            style={[
+              styles.profileImage,
+              { borderColor: isDark ? '#facc15' : '#826529', backgroundColor: backgroundColor },
+            ]}
+          />
           <View style={styles.profileInfo}>
-            <Text style={[styles.nameValue, { color: textColor }]}>Fullname</Text>
-            <Text style={[styles.nameValue, { color: textColor }]}>Email Address</Text>
+            <Text style={[styles.nameValue, { color: textColor }]}>
+              {profile?.firstname && profile?.surname
+                ? `${profile.firstname} ${profile.surname}`
+                : 'Fullname'}
+            </Text>
+            <Text style={[styles.nameValue, { color: textColor }]}>
+              {userData?.email ?? 'Email Address'}
+            </Text>
           </View>
         </View>
 
         <Text style={[styles.title, { color: textColor }]}>Account Details</Text>
         <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
           {[
-            { label: 'Account number', value: '' },
-            { label: 'Phone number', action: 'Edit' },
-            { label: 'Email', value:'' },
-            { label: 'Registration date', value: '' },
+            { label: 'Account number', value: userData?.id ?? '' },
+            { label: 'Phone number', value: profile?.phoneNumber ?? '', action: 'Edit' },
+            { label: 'Email', value: userData?.email ?? '' },
+            {
+              label: 'Registration date',
+              value: userData?.createdAt
+                ? new Date(userData.createdAt).toLocaleDateString()
+                : '',
+            },
           ].map(({ label, value, action }) => (
             <View style={styles.accountInfo} key={label}>
               <Text style={[styles.detail, { color: textColor }]}>{label}</Text>
@@ -44,16 +147,23 @@ export default function AccountScreen() {
 
         <Text style={[styles.title, { color: textColor }]}>Personal information</Text>
         <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
-          {['Firstname', 'Surname', 'Country', 'City', 'Date of Birth'].map((label) => (
-            <View style={styles.accountInfo} key={label}>
-              <Text style={[styles.detail, { color: textColor }]}>{label}</Text>
-              <Text style={[styles.value, { color: textColor }]}></Text>
-            </View>
-          ))}
+          {['Firstname', 'Surname', 'Country', 'City', 'Date of Birth'].map((label) => {
+            const key = mapLabelToKey(label);
+            return (
+              <View style={styles.accountInfo} key={label}>
+                <Text style={[styles.detail, { color: textColor }]}>{label}</Text>
+                <Text style={[styles.value, { color: textColor }]}>
+                  {profile?.[key] ?? ''}
+                </Text>
+              </View>
+            );
+          })}
         </View>
 
         <View style={[styles.profileEdit, { backgroundColor: cardColor }]}>
-          <Text style={[styles.editProfile, { color: textColor }]}>Edit Profile</Text>
+          <TouchableOpacity onPress={() => router.push('/profile')}>
+            <Text style={[styles.editProfile, { color: textColor }]}>Edit Profile</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>

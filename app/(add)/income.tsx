@@ -47,7 +47,7 @@ export default function AddIncomeScreen() {
 
     const fetchCategories = async () => {
       try {
-        const res = await fetch('http://192.168.0.109:3000/api/categories/income');
+        const res = await fetch('http://192.168.0.110:3000/api/categories/income');
         const data = await res.json();
         setCategories(data);
       } catch (error) {
@@ -73,7 +73,7 @@ export default function AddIncomeScreen() {
 
     try {
       const token = await SecureStore.getItemAsync('userToken');
-      const res = await fetch('http://192.168.0.109:3000/api/transactions', {
+      const res = await fetch('http://192.168.0.110:3000/api/transactions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

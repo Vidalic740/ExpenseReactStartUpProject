@@ -29,7 +29,7 @@ export default function HomeScreen() {
     }
 
     try {
-      const response = await fetch('http://192.168.0.109:3000/api/auth/login', {
+      const response = await fetch('http://192.168.0.110:3000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
