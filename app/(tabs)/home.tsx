@@ -50,11 +50,11 @@ export default function HomeScreen() {
           return;
         }
 
-        const res = await fetch('http://192.168.0.110:3000/api/transactions', {
+        const res = await fetch('http://192.168.70.247:3000/api/transactions', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        });
+        })
 
         const data = await res.json();
         console.log('Fetched transactions:', data);

@@ -48,7 +48,7 @@ export default function AccountScreen() {
         const token = await SecureStore.getItemAsync('userToken');
         if (!token) throw new Error('No auth token found');
 
-        const response = await fetch('http://192.168.0.110:3000/api/users/me', {
+        const response = await fetch('http://192.168.70.247:3000/api/users/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

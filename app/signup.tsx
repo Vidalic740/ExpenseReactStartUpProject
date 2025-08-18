@@ -31,7 +31,7 @@ export default function SignUpScreen() {
     }
 
     try {
-      const response = await fetch('http://192.168.0.110:3000/api/auth/register', {
+      const response = await fetch('http://192.168.70.247:3000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, accountType }),
