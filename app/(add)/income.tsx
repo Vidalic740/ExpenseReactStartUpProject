@@ -14,12 +14,15 @@ import {
   View,
 } from 'react-native';
 
-// Define interface for JWT
+// JWT payload interface
 interface MyJwtPayload {
-  userId: string;
+  id: string;
+  email: string;
+  iat: number;
+  exp: number;
 }
 
-// Define interface for Category
+// Category interface
 interface Category {
   id: string;
   name: string;
@@ -30,34 +33,53 @@ export default function AddIncomeScreen() {
 
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
-  const [userId, setUserId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
-    const loadUser = async () => {
+    const loadUserAndCategories = async () => {
       try {
         const token = await SecureStore.getItemAsync('userToken');
-        if (!token) return;
+
+        if (!token) {
+          Alert.alert('Error', 'Missing authentication token.');
+          return;
+        }
+
+        // ✅ Decode userId from JWT
         const decoded = jwtDecode<MyJwtPayload>(token);
-        setUserId(decoded.userId);
+        if (decoded?.id) {
+          setUserId(decoded.id);
+        } else {
+          console.warn('⚠️ Could not extract userId from token');
+        }
+
+        // ✅ Fetch only INCOME categories
+        const response = await fetch('http://192.168.2.105:5000/api/categories?type=INCOME', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.ok && Array.isArray(data)) {
+          setCategories(data);
+        } else {
+          console.error('Fetch categories error:', data);
+          Alert.alert('Error', data.message || 'Failed to fetch categories.');
+        }
       } catch (err) {
-        console.error('Failed to decode token:', err);
+        console.error('Fetch error:', err);
+        Alert.alert('Network Error', 'Could not fetch categories.');
+      } finally {
+        setLoadingCategories(false);
       }
     };
 
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch('http://192.168.2.105:5000/api/categories/income');
-        const data = await res.json();
-        setCategories(data);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        Alert.alert('Error', 'Could not load categories');
-      }
-    };
-
-    loadUser();
-    fetchCategories();
+    loadUserAndCategories();
   }, []);
 
   const handleSubmit = async () => {
@@ -67,12 +89,18 @@ export default function AddIncomeScreen() {
     }
 
     if (!userId) {
-      Alert.alert('User Error', 'User not authenticated.');
+      Alert.alert('User Error', 'User not authenticated. Please log in again.');
       return;
     }
 
     try {
       const token = await SecureStore.getItemAsync('userToken');
+      if (!token) {
+        Alert.alert('Error', 'Authentication token missing.');
+        return;
+      }
+
+      // ✅ Create transaction
       const res = await fetch('http://192.168.2.105:5000/api/transactions', {
         method: 'POST',
         headers: {
@@ -81,7 +109,6 @@ export default function AddIncomeScreen() {
         },
         body: JSON.stringify({
           amount,
-          userId,
           categoryId: category,
           type: 'INCOME',
         }),
@@ -90,15 +117,16 @@ export default function AddIncomeScreen() {
       const data = await res.json();
 
       if (res.ok) {
-        Alert.alert('Success', 'Income added successfully!');
+        Alert.alert('✅ Success', 'Income added successfully!');
         setAmount('');
         setCategory('');
       } else {
-        Alert.alert('Error', data.message || 'Failed to add income');
+        console.error('API Error:', data);
+        Alert.alert('Error', data.message || 'Failed to add income.');
       }
     } catch (error) {
       console.error('Network or fetch error:', error);
-      Alert.alert('Network error', 'Please try again later.');
+      Alert.alert('Network Error', 'Please try again later.');
     }
   };
 
@@ -130,13 +158,22 @@ export default function AddIncomeScreen() {
 
       <View style={styles.inputGroup}>
         <Text style={[styles.label, { color: colors.text }]}>Category *</Text>
-        <View style={[styles.pickerWrapper, { borderColor: colors.border, backgroundColor: colors.input }]}>
+        <View
+          style={[
+            styles.pickerWrapper,
+            { borderColor: colors.border, backgroundColor: colors.input },
+          ]}
+        >
           <Picker
             selectedValue={category}
             onValueChange={(value) => setCategory(value)}
             style={{ color: colors.text }}
+            enabled={!loadingCategories}
           >
-            <Picker.Item label="Select a category" value="" />
+            <Picker.Item
+              label={loadingCategories ? 'Loading categories...' : 'Select a category'}
+              value=""
+            />
             {categories.map((cat) => (
               <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
             ))}
@@ -145,8 +182,9 @@ export default function AddIncomeScreen() {
       </View>
 
       <TouchableOpacity
-        style={[styles.submitBtn, { backgroundColor: "#059669" }]}
+        style={[styles.submitBtn, { backgroundColor: '#059669' }]}
         onPress={handleSubmit}
+        disabled={loadingCategories}
       >
         <MaterialCommunityIcons name="plus" size={20} color="#fff" />
         <Text style={styles.submitBtnText}>Add Income</Text>
@@ -187,3 +225,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

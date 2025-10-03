@@ -41,6 +41,7 @@ export default function HomeScreen() {
   const [totalExpense, setTotalExpense] = useState(0);
   const [availableBalance, setAvailableBalance] = useState(0);
 
+  // 🧩 Fetch transactions from API
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -50,22 +51,18 @@ export default function HomeScreen() {
           return;
         }
 
-        const res = await fetch('http://192.168.70.247:3000/api/transactions', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        const res = await fetch('http://192.168.2.105:5000/api/transactions', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         const data = await res.json();
-        console.log('Fetched transactions:', data);
-
-        if (res.ok) {
+        if (res.ok && Array.isArray(data)) {
           setTransactions(data);
         } else {
           Alert.alert('Error', data.message || 'Failed to fetch transactions.');
         }
       } catch (err) {
-        console.error(err);
+        console.error('Transaction fetch error:', err);
         Alert.alert('Network Error', 'Could not load transactions.');
       } finally {
         setLoading(false);
@@ -77,21 +74,16 @@ export default function HomeScreen() {
     return () => clearInterval(intervalId);
   }, []);
 
+  // 💰 Compute totals
   useEffect(() => {
     if (transactions.length > 0) {
       const income = transactions
-        .filter((tx) => String(tx.type).toLowerCase() === 'income')
-        .reduce((sum, tx) => {
-          const amt = Number(String(tx.amount).replace(/,/g, '').trim());
-          return sum + (isNaN(amt) ? 0 : amt);
-        }, 0);
+        .filter((tx) => tx.type.toLowerCase() === 'income')
+        .reduce((sum, tx) => sum + Number(tx.amount) || 0, 0);
 
       const expense = transactions
-        .filter((tx) => String(tx.type).toLowerCase() === 'expense')
-        .reduce((sum, tx) => {
-          const amt = Number(String(tx.amount).replace(/,/g, '').trim());
-          return sum + (isNaN(amt) ? 0 : amt);
-        }, 0);
+        .filter((tx) => tx.type.toLowerCase() === 'expense')
+        .reduce((sum, tx) => sum + Number(tx.amount) || 0, 0);
 
       setTotalIncome(income);
       setTotalExpense(expense);
@@ -103,55 +95,32 @@ export default function HomeScreen() {
     }
   }, [transactions]);
 
-  // --- Chart logic: daily data for current month, no savings ---
+  // 📆 Prepare chart data (current month)
   const today = new Date();
   const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth(); // 0-based month
-
+  const currentMonth = today.getMonth(); // 0-based
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-  // Full day labels 1..daysInMonth as strings
+  // Day labels for 1..N
   const dayLabels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
 
-  // Cut first 4 days completely and show at most 15 days after that,
-  // with a single day margin (show every day label, no skipping)
-  // Also implement: for every 2 days on the chart, remove 1 day from start and add 2 upcoming days.
-
+  // Skip first 4 days, show next 15
   const filteredDayLabels = useMemo(() => {
-    const startDay = 5; // skip first 4 days completely
-    const maxDaysToShow = 15;
-
-    // Initial slice from day 5
-    let daysToShow = dayLabels.slice(startDay - 1);
-
-    // Adjust days to show based on your logic:
-    // For every 2 days displayed, remove 1 day from start and add 2 days at the end,
-    // but ensure total days <= maxDaysToShow
-
-    // Calculate how many days to cut from start after first 4 days
-    // We'll remove Math.floor(daysToShow.length / 2) days from start and add twice that at end
-    // But to keep it <= maxDaysToShow, we limit accordingly.
-
-    // Actually, since your description is a bit complex, let's simplify:
-    // - Always show maxDaysToShow days after skipping first 4
-    // - So just slice maxDaysToShow days after day 4
-
-    return daysToShow.slice(0, maxDaysToShow);
+    const startIndex = 4;
+    const maxDays = 15;
+    return dayLabels.slice(startIndex, startIndex + maxDays);
   }, [dayLabels]);
 
-  // Aggregate daily income and expense data
+  // 📊 Aggregate daily data
   const dailyData = useMemo(() => {
     const incomeByDay = Array(daysInMonth).fill(0);
     const expenseByDay = Array(daysInMonth).fill(0);
 
     transactions.forEach((tx) => {
       const txDate = new Date(tx.createdAt);
-      if (
-        txDate.getFullYear() === currentYear &&
-        txDate.getMonth() === currentMonth
-      ) {
+      if (txDate.getFullYear() === currentYear && txDate.getMonth() === currentMonth) {
         const day = txDate.getDate(); // 1-based
-        const amt = Number(String(tx.amount).replace(/,/g, '').trim());
+        const amt = Number(tx.amount);
         if (isNaN(amt)) return;
 
         if (tx.type.toLowerCase() === 'income') {
@@ -165,20 +134,15 @@ export default function HomeScreen() {
     return { incomeByDay, expenseByDay };
   }, [transactions, currentYear, currentMonth, daysInMonth]);
 
-  // Filter data to align with filtered labels
-  const filteredIncomeData = useMemo(() => {
-    return filteredDayLabels.map((dayStr) => {
-      const dayNum = parseInt(dayStr, 10);
-      return dailyData.incomeByDay[dayNum - 1] || 0;
-    });
-  }, [filteredDayLabels, dailyData]);
-
-  const filteredExpenseData = useMemo(() => {
-    return filteredDayLabels.map((dayStr) => {
-      const dayNum = parseInt(dayStr, 10);
-      return dailyData.expenseByDay[dayNum - 1] || 0;
-    });
-  }, [filteredDayLabels, dailyData]);
+  // Filter data for chart
+  const filteredIncomeData = useMemo(
+    () => filteredDayLabels.map((d) => dailyData.incomeByDay[parseInt(d, 10) - 1] || 0),
+    [filteredDayLabels, dailyData]
+  );
+  const filteredExpenseData = useMemo(
+    () => filteredDayLabels.map((d) => dailyData.expenseByDay[parseInt(d, 10) - 1] || 0),
+    [filteredDayLabels, dailyData]
+  );
 
   const chartData = {
     labels: filteredDayLabels,
@@ -211,11 +175,9 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Financial Overview */}
+        {/* Overview */}
         <LinearGradient
-          colors={
-            isDark ? ['#2C002E', '#13203C', '#030F1A'] : ['#059669', '#537A9F', '#28527A']
-          }
+          colors={isDark ? ['#2C002E', '#13203C', '#030F1A'] : ['#059669', '#537A9F', '#28527A']}
           style={styles.card}
         >
           <View style={styles.cardItem}>
@@ -237,7 +199,7 @@ export default function HomeScreen() {
           </View>
         </LinearGradient>
 
-        {/* Quick Actions */}
+        {/* Buttons */}
         <View style={styles.btnHolder}>
           <TouchableOpacity
             style={[styles.button, { backgroundColor: '#059669' }]}
@@ -265,7 +227,7 @@ export default function HomeScreen() {
               backgroundGradientTo: isDark ? '#0f172a' : '#e2e8f0',
               decimalPlaces: 0,
               color: (opacity = 1) =>
-                isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(30, 41, 59, ${opacity})`,
+                isDark ? `rgba(255,255,255,${opacity})` : `rgba(30,41,59,${opacity})`,
               labelColor: () => (isDark ? '#f1f5f9' : '#1e293b'),
               propsForDots: { r: '4', strokeWidth: '2', stroke: '#fff' },
               propsForBackgroundLines: { stroke: isDark ? '#334155' : '#cbd5e1' },
@@ -326,14 +288,13 @@ export default function HomeScreen() {
                   <Text
                     style={isIncome ? styles.transactionAmountPositive : styles.transactionAmountNegative}
                   >
-                    {isIncome ? '+' : '-'}Ksh. {Number(String(tx.amount).replace(/,/g, '').trim()).toLocaleString()}
+                    {isIncome ? '+' : '-'}Ksh. {Number(tx.amount).toLocaleString()}
                   </Text>
                 </View>
               );
             })
           )}
         </View>
-        
       </View>
     </ScrollView>
   );
@@ -421,3 +382,4 @@ const styles = StyleSheet.create({
   transactionAmountPositive: { fontWeight: 'bold', color: '#059669' },
   transactionAmountNegative: { fontWeight: 'bold', color: '#dc2626' },
 });
+

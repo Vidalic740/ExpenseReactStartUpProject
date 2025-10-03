@@ -42,7 +42,7 @@ export default function AddExpenseScreen() {
         }
 
         // ✅ Use the endpoint that returns only EXPENSE categories
-        const response = await fetch('http://192.168.2.105:5000/api/categories/expense', {
+        const response = await fetch('http://192.168.2.105:5000/api/categories?type=EXPENSE', {
           headers: {
             'Content-Type': 'application/json',
             ...(token && { Authorization: `Bearer ${token}` }),
@@ -95,6 +95,7 @@ export default function AddExpenseScreen() {
           amount: numericAmount,
           userId,
           categoryId: category,
+	  type: 'EXPENSE',
         }),
       });
 
