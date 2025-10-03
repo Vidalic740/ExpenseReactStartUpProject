@@ -42,7 +42,7 @@ export default function AddExpenseScreen() {
         }
 
         // ✅ Use the endpoint that returns only EXPENSE categories
-        const response = await fetch('http://192.168.70.247:3000/api/categories/expense', {
+        const response = await fetch('http://192.168.2.105:5000/api/categories/expense', {
           headers: {
             'Content-Type': 'application/json',
             ...(token && { Authorization: `Bearer ${token}` }),
@@ -84,7 +84,7 @@ export default function AddExpenseScreen() {
     try {
       const token = await SecureStore.getItemAsync('userToken');
 
-      const response = await fetch('http://192.168.70.247:3000/api/transactions', {
+      const response = await fetch('http://192.168.2.105:5000/api/transactions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
