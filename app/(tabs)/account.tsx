@@ -43,32 +43,30 @@ export default function AccountScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = await SecureStore.getItemAsync('userToken');
-        if (!token) throw new Error('No auth token found');
+  const fetchUserData = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('userToken');
+      if (!token) throw new Error('No auth token found');
 
-        const response = await fetch('http://192.168.70.247:3000/api/users/me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const response = await fetch('http://192.168.2.105:5000/api/users/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch user data');
-        }
+      if (!response.ok) throw new Error('Failed to fetch user data');
 
-        const data = await response.json();
-        setUserData(data || null);
-      } catch (error: any) {
-        Alert.alert('Error', error.message || 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
+      const data = await response.json();
+      setUserData(data || null);
+    } catch (error: any) {
+      console.error('Fetch user failed:', error.message);
+      setUserData(null); // show nothing if fetch fails
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchUserData();
-  }, []);
+  fetchUserData();
+}, []);
+
 
   if (loading) {
     return (

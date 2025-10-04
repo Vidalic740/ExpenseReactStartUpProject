@@ -56,7 +56,7 @@ export default function EditProfileScreen() {
       const token = await SecureStore.getItemAsync('userToken');
       if (!token) throw new Error('No auth token found');
 
-      const response = await fetch('http://192.168.0.110:3000/api/users/me', {
+      const response = await fetch('http://192.168.2.105:5000/api/users/me', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
