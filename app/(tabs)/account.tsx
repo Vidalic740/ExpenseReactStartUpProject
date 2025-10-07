@@ -58,15 +58,16 @@ export default function AccountScreen() {
       setUserData(data || null);
     } catch (error: any) {
       console.error('Fetch user failed:', error.message);
-      setUserData(null); // show nothing if fetch fails
+      setUserData(null);
     } finally {
       setLoading(false);
     }
   };
 
-  fetchUserData();
-}, []);
-
+  if (isFocused) {
+    fetchUserData();
+  }
+}, [isFocused]);
 
   if (loading) {
     return (
@@ -121,7 +122,7 @@ export default function AccountScreen() {
         <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
           {[
             { label: 'Account number', value: userData?.id ?? '' },
-            { label: 'Phone number', value: profile?.phoneNumber ?? '', action: 'Edit' },
+            { label: 'Phone number', value: profile?.phoneNumber ?? '' },
             { label: 'Email', value: userData?.email ?? '' },
             {
               label: 'Registration date',
