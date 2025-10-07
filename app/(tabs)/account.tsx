@@ -1,10 +1,10 @@
 import { useAppTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native'; // ✅ Add this
 import * as SecureStore from 'expo-secure-store';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,9 +23,9 @@ interface UserProfile {
 }
 
 interface UserData {
-  id?: string;               // Account number
+  id?: string; // Account number
   email?: string;
-  createdAt?: string;        // Registration date
+  createdAt?: string; // Registration date
   profile?: UserProfile;
   [key: string]: any;
 }
@@ -34,6 +34,7 @@ export default function AccountScreen() {
   const router = useRouter();
   const { colors, theme } = useAppTheme();
   const isDark = theme === 'dark';
+  const isFocused = useIsFocused(); // ✅ define it here
 
   const backgroundColor = isDark ? '#1e293b' : '#fdfdfd';
   const cardColor = isDark ? '#334155' : '#dcdcdc';
@@ -42,7 +43,6 @@ export default function AccountScreen() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
   const fetchUserData = async () => {
     try {
       const token = await SecureStore.getItemAsync('userToken');
@@ -64,10 +64,11 @@ export default function AccountScreen() {
     }
   };
 
-  if (isFocused) {
-    fetchUserData();
-  }
-}, [isFocused]);
+  useEffect(() => {
+    if (isFocused) {
+      fetchUserData();
+    }
+  }, [isFocused]); // ✅ re-fetch when screen is focused
 
   if (loading) {
     return (
@@ -99,6 +100,7 @@ export default function AccountScreen() {
   return (
     <ScrollView style={[styles.scroll, { backgroundColor: colors.background }]}>
       <View style={styles.main}>
+        {/* Profile Section */}
         <View style={styles.profile}>
           <View
             style={[
@@ -118,6 +120,7 @@ export default function AccountScreen() {
           </View>
         </View>
 
+        {/* Account Details */}
         <Text style={[styles.title, { color: textColor }]}>Account Details</Text>
         <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
           {[
@@ -130,21 +133,16 @@ export default function AccountScreen() {
                 ? new Date(userData.createdAt).toLocaleDateString()
                 : '',
             },
-          ].map(({ label, value, action }) => (
+          ].map(({ label, value }) => (
             <View style={styles.accountInfo} key={label}>
               <Text style={[styles.detail, { color: textColor }]}>{label}</Text>
-              {action ? (
-                <TouchableOpacity accessible accessibilityLabel="Tap me!">
-                  <Text style={[styles.edit, { color: isDark ? '#38bdf8' : 'blue' }]}>{action}</Text>
-                </TouchableOpacity>
-              ) : (
-                <Text style={[styles.value, { color: textColor }]}>{value}</Text>
-              )}
+              <Text style={[styles.value, { color: textColor }]}>{value}</Text>
             </View>
           ))}
         </View>
 
-        <Text style={[styles.title, { color: textColor }]}>Personal information</Text>
+        {/* Personal Information */}
+        <Text style={[styles.title, { color: textColor }]}>Personal Information</Text>
         <View style={[styles.accountCard, { backgroundColor: colors.card }]}>
           {['Firstname', 'Surname', 'Country', 'City', 'Date of Birth'].map((label) => {
             const key = mapLabelToKey(label);
@@ -159,11 +157,14 @@ export default function AccountScreen() {
           })}
         </View>
 
-        <View style={[styles.profileEdit, { backgroundColor: cardColor }]}>
-          <TouchableOpacity onPress={() => router.push('/profile')}>
-            <Text style={[styles.editProfile, { color: textColor }]}>Edit Profile</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Edit Profile Button */}
+        <TouchableOpacity
+          onPress={() => router.push('/profile')}
+          style={[styles.profileEdit, { backgroundColor: cardColor }]}
+          activeOpacity={0.7} // ✅ Entire button is clickable
+        >
+          <Text style={[styles.editProfile, { color: textColor }]}>Edit Profile</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -179,7 +180,6 @@ const styles = StyleSheet.create({
   },
   profile: {
     marginTop: 25,
-    height: 'auto',
     paddingHorizontal: 5,
     flexDirection: 'row',
   },
@@ -201,7 +201,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   accountCard: {
-    height: 'auto',
     borderRadius: 15,
     marginTop: 8,
   },
@@ -213,15 +212,11 @@ const styles = StyleSheet.create({
   detail: {
     fontSize: 16,
   },
-  edit: {
-    fontSize: 15,
-    textDecorationLine: 'underline',
-  },
   value: {
     fontSize: 17,
   },
   profileEdit: {
-    height: 42,
+    height: 50,
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
@@ -229,5 +224,7 @@ const styles = StyleSheet.create({
   },
   editProfile: {
     fontSize: 18,
+    fontWeight: '600',
   },
 });
+
