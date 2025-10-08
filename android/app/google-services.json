@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "200529939607",
+    "project_id": "expense-802f1",
+    "storage_bucket": "expense-802f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:200529939607:android:487e23916a70f1448b2dd2",
+        "android_client_info": {
+          "package_name": "com.vidalic740.expense"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYyOjqK_07HH64kIEuH47jyeXpxLitgg0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
