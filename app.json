@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.vidalic740.expense",
-      "googleServicesFile" : "./android/app/google-services.json"
+      "googleServicesFile": "./android/app/google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -42,7 +42,8 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
@@ -51,7 +52,9 @@
       "router": {},
       "eas": {
         "projectId": "49a1144d-290f-4f6e-8ab7-26a00354db53"
-      }
+      },
+      "googleClientIdAndroid": "904744664698-qt690g4md85rvvgirfn7ue3715u1q449.apps.googleusercontent.com",
+      "googleClientIdWeb": "904744664698-7qis6ldeupi2mhssge9tehuebstoks5g.apps.googleusercontent.com"
     },
     "owner": "vidalic740",
     "runtimeVersion": "1.0.0"
