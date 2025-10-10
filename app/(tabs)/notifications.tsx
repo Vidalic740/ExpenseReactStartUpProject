@@ -118,7 +118,7 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 15,
+    padding: 16,
   },
   title: {
     fontSize: 22,
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
     padding: 15,
-    marginBottom: 12,
+    marginTop:12,
     borderWidth: 1,
   },
   titleText: {

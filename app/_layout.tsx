@@ -1,19 +1,19 @@
 // app/_layout.tsx
 import React, { useEffect } from 'react';
+import * as SecureStore from 'expo-secure-store';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import {
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationDefaultTheme,
   ThemeProvider as NavigationThemeProvider,
 } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
-
 import { ThemeProvider, useAppTheme } from '@/context/ThemeContext';
 
-// 🔔 Configure how notifications behave when received
+// ✅ Configure notification behavior
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -39,6 +39,7 @@ function AppLayout() {
         <Stack.Screen name="(wallet)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
+
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
     </NavigationThemeProvider>
   );
@@ -49,45 +50,54 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  // 🔔 Ask for Notification Permissions once on mount
   useEffect(() => {
-    const registerForNotifications = async () => {
+    const registerForPushNotifications = async () => {
       try {
-        let finalStatus;
+        // ✅ Ask for permission
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
 
-        if (Platform.OS === 'ios') {
-          // iOS requires explicit permissions
-          const { status } = await Notifications.requestPermissionsAsync({
-            alert: true,
-            badge: true,
-            sound: true,
-          });
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
           finalStatus = status;
-        } else {
-          // Android (API 33+) requires runtime permission
-          const { status: existingStatus } = await Notifications.getPermissionsAsync();
-          if (existingStatus === 'granted') {
-            finalStatus = existingStatus;
-          } else {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-          }
         }
 
         if (finalStatus !== 'granted') {
-          console.log('Notification permission not granted');
+          console.warn('Push notification permission not granted');
           return;
         }
 
-        // ✅ Get Expo push token (optional, for sending push notifications)
-        const token = (await Notifications.getExpoPushTokenAsync()).data;
-        console.log('Expo Push Token:', token);
+        // ✅ Get the push token
+        const { data: token } = await Notifications.getExpoPushTokenAsync();
+        if (!token) {
+          console.warn('No Expo push token received');
+          return;
+        }
+
+        console.log('✅ Expo Push Token:', token);
+
+        // ✅ Store it securely
+        await SecureStore.setItemAsync('expoPushToken', token);
+
+        // Optional: check what was stored
+        const savedToken = await SecureStore.getItemAsync('expoPushToken');
+        console.log('Token saved in SecureStore:', savedToken);
+
+        // ✅ Configure Android-specific behavior
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('default', {
+            name: 'default',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#FF231F7C',
+          });
+        }
       } catch (error) {
-        console.error('Error requesting notification permissions:', error);
+        console.error('Error registering for notifications:', error);
       }
     };
 
-    registerForNotifications();
+    registerForPushNotifications();
   }, []);
 
   if (!loaded) return null;
