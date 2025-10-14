@@ -35,6 +35,12 @@ type Bill = {
   dueDate: string;
 };
 
+type PredefinedBill = {
+  id: string;
+  name: string;
+  amount: number;
+};
+
 export default function HomeScreen() {
   const { colors, theme } = useAppTheme();
   const isDark = theme === 'dark';
@@ -55,6 +61,8 @@ export default function HomeScreen() {
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpense, setTotalExpense] = useState(0);
   const [availableBalance, setAvailableBalance] = useState(0);
+
+  const [predefinedBills, setPredefinedBills] = useState<PredefinedBill[]>([]);
 
   // 🧾 Load saved bills
   useEffect(() => {
@@ -97,15 +105,10 @@ export default function HomeScreen() {
   useEffect(() => {
     const hour = new Date().getHours();
 
-    if (hour >= 5 && hour < 12){
-	    setGreeting('Good Morning');
-    } else if (hour >= 12 && hour < 16){
-	    setGreeting('Good Afternoon');
-    } else if (hour >= 17 && hour < 21){
-	    setGreeting('Good Evening');
-    } else {
-	   setGreeting ('Good Evening');
-    }
+    if (hour >= 5 && hour < 12) setGreeting('Good Morning');
+    else if (hour >= 12 && hour < 16) setGreeting('Good Afternoon');
+    else if (hour >= 17 && hour < 21) setGreeting('Good Evening');
+    else setGreeting('Good Evening');
   }, []);
 
   // 👤 Fetch user's profile name
@@ -200,16 +203,24 @@ export default function HomeScreen() {
     legend: ['Income', 'Expense'],
   };
 
-  const predefinedBills = [
-    { name: 'Rent', amount: 15000 },
-    { name: 'Water Bill', amount: 500 },
-    { name: 'Electricity Bill', amount: 2000 },
-    { name: 'Internet (WiFi)', amount: 2500 },
-    { name: 'Netflix', amount: 1200 },
-    { name: 'Spotify', amount: 600 },
-    { name: 'DStv', amount: 2500 },
-    { name: 'Gym Subscription', amount: 3000 },
-  ];
+  // 🧾 Fetch predefined bills from backend (isBill = YES)
+  useEffect(() => {
+    const fetchBillCategories = async () => {
+      try {
+        const token = await SecureStore.getItemAsync('userToken');
+        if (!token) return;
+        const res = await fetch('http://192.168.2.105:5000/api/categories/bills', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('Failed to fetch bill categories');
+        const data = await res.json();
+        if (Array.isArray(data.categories)) setPredefinedBills(data.categories);
+      } catch (err) {
+        console.error('Error fetching bill categories:', err);
+      }
+    };
+    fetchBillCategories();
+  }, []);
 
   const handleSelectBill = async (item: { name: string; amount: number }) => {
     const dueDate = new Date();
@@ -353,45 +364,35 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* 🧾 Upcoming Bills (Now BELOW Transactions) */}
+        {/* 🧾 Upcoming Bills */}
         <View style={[styles.transactionsCard, { backgroundColor: cardBg }]}>
           <View style={styles.transactionsHeader}>
             <Text style={[styles.transactionsTitle, { color: textColor }]}>Upcoming Bills</Text>
             <TouchableOpacity onPress={() => setShowBillSheet(true)}>
-              <Text style={{ color: colors.accent }}>Add Bill</Text>
+              <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Add Bills</Text>
             </TouchableOpacity>
           </View>
-
           {bills.length === 0 ? (
             <Text style={{ color: fadedText }}>No upcoming bills.</Text>
           ) : (
-            bills.map((bill) => {
-              const due = new Date(bill.dueDate);
-              const diffDays = Math.ceil(
-                (due.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-              );
-              return (
-                <View key={bill.id} style={[styles.transactionItem, { backgroundColor: '#fef3c7' }]}>
-                  <View style={[styles.iconWrapper, { backgroundColor: '#f59e0b' }]}>
-                    <MaterialCommunityIcons name="calendar-clock" size={20} color="#fff" />
-                  </View>
-                  <View style={styles.transactionInfo}>
-                    <Text style={[styles.transactionName, { color: '#b45309' }]}>{bill.name}</Text>
-                    <Text style={[styles.transactionDesc, { color: fadedText }]}>
-                      Due in {diffDays} day(s)
-                    </Text>
-                  </View>
-                  <Text style={{ fontWeight: 'bold', color: '#b45309' }}>
-                    Ksh. {bill.amount.toLocaleString()}
+            bills.map((bill) => (
+              <View key={bill.id} style={styles.transactionItem}>
+                <View style={[styles.iconWrapper, { backgroundColor: '#f59e0b' }]}>
+                  <MaterialCommunityIcons name="calendar-month" size={20} color="#fff" />
+                </View>
+                <View style={styles.transactionInfo}>
+                  <Text style={[styles.transactionName, { color: '#b45309' }]}>{bill.name}</Text>
+                  <Text style={[styles.transactionDesc, { color: fadedText }]}>
                   </Text>
                 </View>
-              );
-            })
+                <Text style={{ fontWeight: 'bold', color: '#b45309' }}></Text>
+              </View>
+            ))
           )}
         </View>
       </View>
 
-      {/* 📜 Bottom Sheet Modal */}
+      {/* 💼 Bill Selection Modal */}
       <Modal visible={showBillSheet} transparent animationType="slide" onRequestClose={() => setShowBillSheet(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setShowBillSheet(false)} />
         <View style={[styles.sheet, { backgroundColor: cardBg }]}>
@@ -399,13 +400,13 @@ export default function HomeScreen() {
           <ScrollView style={{ maxHeight: 400 }}>
             {predefinedBills.map((item) => (
               <TouchableOpacity
-                key={item.name}
+                key={item.id}
                 style={styles.sheetItem}
                 onPress={() => handleSelectBill(item)}
               >
                 <MaterialCommunityIcons name="checkbox-marked-circle" size={22} color={colors.accent} />
                 <Text style={[styles.sheetText, { color: textColor }]}>{item.name}</Text>
-                <Text style={{ color: fadedText }}>Ksh. {item.amount.toLocaleString()}</Text>
+                <Text style={{ color: fadedText }}></Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
