@@ -261,9 +261,8 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   cardContent: {
-    position: "absolute",
-    bottom: 30,
-    left: 20,
+    flex: 1,
+    justifyContent: "center",
   },
   walletName: {
     color: "#fff",
