@@ -244,7 +244,7 @@ export default function HomeScreen() {
             <Text style={[styles.greetings, { color: textColor }]}> {greeting} 👋</Text>
             <Text style={[styles.username, { color: fadedText }]}>Welcome back, {fullName}</Text>
           </View>
-          <TouchableOpacity onPress={() => router.push('/(wallet)/add')}>
+          <TouchableOpacity onPress={() => router.push('/(wallet)/business-wallet')}>
             <MaterialCommunityIcons name="wallet-plus" size={28} color={colors.accent} />
           </TouchableOpacity>
         </View>
