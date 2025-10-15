@@ -12,6 +12,8 @@ import {
   Pressable,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAppTheme } from "../../context/ThemeContext";
 
 export default function WalletScreen() {
@@ -19,10 +21,9 @@ export default function WalletScreen() {
 
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [modalVisible, setModalVisible] = useState(false);
   const [newWalletName, setNewWalletName] = useState("");
-  const [newWalletType, setNewWalletType] = useState("personal"); // default
+  const [newWalletType, setNewWalletType] = useState("personal");
 
   useEffect(() => {
     fetchWallets();
@@ -128,9 +129,7 @@ export default function WalletScreen() {
           <View
             style={[styles.modalView, { backgroundColor: colors.card, borderColor: colors.border }]}
           >
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Create New Wallet
-            </Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Create New Wallet</Text>
 
             <TextInput
               placeholder="Wallet Name"
@@ -140,9 +139,7 @@ export default function WalletScreen() {
               onChangeText={setNewWalletName}
             />
 
-            <Text style={[styles.modalLabel, { color: colors.text }]}>
-              Select Wallet Type:
-            </Text>
+            <Text style={[styles.modalLabel, { color: colors.text }]}>Select Wallet Type:</Text>
             <View style={styles.typeButtons}>
               {["personal", "business"].map((type) => (
                 <Pressable
@@ -187,7 +184,7 @@ export default function WalletScreen() {
         </View>
       </Modal>
 
-      {/* Wallet List */}
+      {/* Wallet Cards */}
       {wallets.length === 0 ? (
         <Text style={[styles.noWalletsText, { color: colors.subText }]}>
           No wallets found.
@@ -198,21 +195,22 @@ export default function WalletScreen() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ paddingBottom: 40 }}
           renderItem={({ item }) => (
-            <View
-              style={[
-                styles.card,
-                {
-                  backgroundColor: colors.card,
-                  shadowColor: colors.text,
-                },
-              ]}
+            <LinearGradient
+              colors={["#141E30", "#243B55"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.cardGradient}
             >
-              <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
-              <Text style={{ color: colors.subText, marginBottom: 8 }}>Type: {item.type}</Text>
-              <Text style={{ color: colors.subText, fontSize: 16, fontWeight: "600" }}>
-                Balance: {item.balance} {item.currency}
-              </Text>
-            </View>
+
+              {/* Wallet Details */}
+              <View style={styles.cardContent}>
+                <Text style={styles.walletName}>{item.name}</Text>
+                <Text style={styles.walletType}>{item.type.toUpperCase()}</Text>
+                <Text style={styles.walletBalance}>
+                  {item.currency} {item.balance?.toLocaleString() ?? "0.00"}
+                </Text>
+              </View>
+            </LinearGradient>
           )}
         />
       )}
@@ -223,17 +221,6 @@ export default function WalletScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
-  card: {
-    minHeight: 150,
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 16,
-    elevation: 5,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-  },
-  name: { fontSize: 24, fontWeight: "700", marginBottom: 4 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { marginTop: 12 },
 
@@ -260,5 +247,39 @@ const styles = StyleSheet.create({
   typeButtonText: { fontWeight: "600", fontSize: 16 },
   modalButtons: { flexDirection: "row", justifyContent: "space-between" },
   noWalletsText: { fontSize: 16 },
+
+  // 💳 Card Design
+  cardGradient: {
+    height: 200,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  cardContent: {
+    position: "absolute",
+    bottom: 30,
+    left: 20,
+  },
+  walletName: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "600",
+  },
+  walletType: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 20,
+    marginTop: 5,
+  },
+  walletBalance: {
+    color: "#fff",
+    fontSize: 25,
+    fontWeight: "bold",
+    marginTop: 12,
+  },
 });
 
