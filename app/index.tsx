@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Alert,
@@ -32,7 +31,7 @@ export default function LoginScreen() {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
 
-  // 🔹 Load Expo Push Token from SecureStore (it’s set in _layout.tsx)
+  // Load stored Expo push token (saved from app startup)
   useEffect(() => {
     const loadPushToken = async () => {
       const token = await SecureStore.getItemAsync('expoPushToken');
@@ -46,7 +45,7 @@ export default function LoginScreen() {
     loadPushToken();
   }, []);
 
-  // --- Google OAuth ---
+  // --- Google OAuth setup ---
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: GOOGLE_CLIENT_ID_WEB,
@@ -87,26 +86,50 @@ export default function LoginScreen() {
     }
 
     try {
-      // 🔥 Send login request with Expo Push Token
       const res = await fetch('http://192.168.2.105:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
           password,
-          pushToken: expoPushToken, // send token to backend
+          pushToken: expoPushToken,
         }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.token) {
-        // ✅ Save user JWT in SecureStore
         await SecureStore.setItemAsync('userToken', data.token);
-        console.log('✅ Login successful and push token sent to backend.');
+        console.log('✅ Login successful, verifying wallet type...');
 
-        // 🔄 Navigate to home
-        router.push('/home');
+        // 🔹 Fetch wallet info for the user
+        const walletRes = await fetch('http://192.168.2.105:5000/api/wallets/user', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${data.token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const walletData = await walletRes.json();
+
+        if (walletRes.ok && walletData?.wallets?.length > 0) {
+          const firstWallet = walletData.wallets[0];
+
+          if (firstWallet.type === 'personal') {
+            console.log('🧍 Redirecting to Personal Wallet (Home)');
+            router.push('/home');
+          } else if (firstWallet.type === 'business') {
+            console.log('🏢 Redirecting to Business Wallet');
+            router.push('/business-wallet');
+          } else {
+            console.warn('⚠️ Unknown wallet type, redirecting to home as fallback.');
+            router.push('/home');
+          }
+        } else {
+          console.warn('⚠️ No wallet found, redirecting to personal wallet.');
+          router.push('/home');
+        }
       } else {
         console.error('Login error:', data);
         Alert.alert('Login Failed', data.message || 'Invalid credentials.');
