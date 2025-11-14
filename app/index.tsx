@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import * as AuthSession from 'expo-auth-session';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+import * as WebBrowser from 'expo-web-browser';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
 import { useAppTheme } from '../context/ThemeContext';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -78,67 +78,68 @@ export default function LoginScreen() {
     }
   };
 
-  // --- Email/Password Login ---
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Validation Error', 'Please enter both email and password.');
-      return;
-    }
+// --- Email/Password Login ---
+const handleLogin = async () => {
+  if (!email || !password) {
+    Alert.alert('Validation Error', 'Please enter both email and password.');
+    return;
+  }
 
-    try {
-      const res = await fetch('http://192.168.2.105:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          password,
-          pushToken: expoPushToken,
-        }),
+  try {
+    const res = await fetch('http://10.72.146.245:5000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        password,
+        pushToken: expoPushToken,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.token) {
+      await SecureStore.setItemAsync('userToken', data.token);
+      console.log('✅ Login successful, fetching wallets...');
+
+      // 🔹 Fetch wallets for user
+      const walletRes = await fetch('http://10.72.146.245:5000/api/wallets/user', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${data.token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
-      const data = await res.json();
+      const walletData = await walletRes.json();
 
-      if (res.ok && data.token) {
-        await SecureStore.setItemAsync('userToken', data.token);
-        console.log('✅ Login successful, verifying wallet type...');
+      if (walletRes.ok && walletData?.wallets?.length > 0) {
+        console.log(`💰 ${walletData.wallets.length} wallet(s) found`);
 
-        // 🔹 Fetch wallet info for the user
-        const walletRes = await fetch('http://192.168.2.105:5000/api/wallets/user', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${data.token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        // Save wallets locally for selection screen
+        await SecureStore.setItemAsync(
+          'userWallets',
+          JSON.stringify(walletData.wallets)
+        );
 
-        const walletData = await walletRes.json();
-
-        if (walletRes.ok && walletData?.wallets?.length > 0) {
-          const firstWallet = walletData.wallets[0];
-
-          if (firstWallet.type === 'personal') {
-            console.log('🧍 Redirecting to Personal Wallet (Home)');
-            router.push('/home');
-          } else if (firstWallet.type === 'business') {
-            console.log('🏢 Redirecting to Business Wallet');
-            router.push('/business-wallet');
-          } else {
-            console.warn('⚠️ Unknown wallet type, redirecting to home as fallback.');
-            router.push('/home');
-          }
-        } else {
-          console.warn('⚠️ No wallet found, redirecting to personal wallet.');
-          router.push('/home');
-        }
+        // ✅ Redirect to wallet selection screen
+        router.push('/select-wallet');
       } else {
-        console.error('Login error:', data);
-        Alert.alert('Login Failed', data.message || 'Invalid credentials.');
+        console.warn('⚠️ Wallets not found for this user.');
+        Alert.alert(
+          'No Wallets Found',
+          'We couldn’t retrieve your wallets. Please try again later.'
+        );
       }
-    } catch (error) {
-      console.error('Network Login Error:', error);
-      Alert.alert('Error', 'Network request failed.');
+    } else {
+      console.error('Login error:', data);
+      Alert.alert('Login Failed', data.message || 'Invalid credentials.');
     }
-  };
+  } catch (error) {
+    console.error('Network Login Error:', error);
+    Alert.alert('Error', 'Network request failed. Please check your connection.');
+  }
+};
 
   return (
     <LinearGradient

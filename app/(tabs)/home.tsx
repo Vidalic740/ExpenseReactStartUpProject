@@ -9,12 +9,12 @@ import {
   Alert,
   Dimensions,
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Pressable,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
@@ -25,7 +25,7 @@ type Transaction = {
   amount: number | string;
   type: string;
   createdAt: string;
-  category: { name: string };
+  category: { name: string } | null;
 };
 
 type Bill = {
@@ -44,27 +44,24 @@ type PredefinedBill = {
 export default function HomeScreen() {
   const { colors, theme } = useAppTheme();
   const isDark = theme === 'dark';
-  const backgroundColor = colors.background;
-  const cardBg = colors.card;
 
-  const textColor = colors.text;
-  const fadedText = colors.subText;
-
+  // UI state
   const [greeting, setGreeting] = useState('Hello');
   const [fullName, setFullName] = useState('Fullname');
-
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBillSheet, setShowBillSheet] = useState(false);
 
+  // Data state
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [predefinedBills, setPredefinedBills] = useState<PredefinedBill[]>([]);
+
+  // Totals
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpense, setTotalExpense] = useState(0);
   const [availableBalance, setAvailableBalance] = useState(0);
 
-  const [predefinedBills, setPredefinedBills] = useState<PredefinedBill[]>([]);
-
-  // 🧾 Load saved bills
+  // --- Load saved user bills from secure storage (unchanged) ---
   useEffect(() => {
     const loadBills = async () => {
       const saved = await SecureStore.getItemAsync('userBills');
@@ -73,16 +70,17 @@ export default function HomeScreen() {
     loadBills();
   }, []);
 
-  // 📦 Save bill helper
+  // --- Save bill helper (unchanged) ---
   const saveBill = async (newBill: Bill) => {
     const updated = [...bills, newBill];
     setBills(updated);
     await SecureStore.setItemAsync('userBills', JSON.stringify(updated));
   };
 
-  // ➕ Add a bill manually (custom)
+  // --- Add custom bill flow (unchanged logic) ---
   const handleAddCustomBill = async () => {
     setShowBillSheet(false);
+    // Note: Alert.prompt behaves differently on Android/iOS; kept as originally used.
     Alert.prompt('Add Bill', 'Enter bill name:', async (name) => {
       if (!name) return;
       Alert.prompt('Amount', 'Enter amount (Ksh):', async (amountStr) => {
@@ -101,17 +99,15 @@ export default function HomeScreen() {
     });
   };
 
-  // 🕒 Set greeting based on time
+  // --- Greeting by time (unchanged) ---
   useEffect(() => {
     const hour = new Date().getHours();
-
     if (hour >= 5 && hour < 12) setGreeting('Good Morning');
     else if (hour >= 12 && hour < 16) setGreeting('Good Afternoon');
-    else if (hour >= 17 && hour < 21) setGreeting('Good Evening');
     else setGreeting('Good Evening');
   }, []);
 
-  // 👤 Fetch user's profile name
+  // --- Fetch profile (unchanged API call) ---
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -136,7 +132,7 @@ export default function HomeScreen() {
     fetchProfile();
   }, []);
 
-  // 🧩 Fetch transactions
+  // --- Fetch transactions periodically (unchanged API call + interval) ---
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -158,7 +154,7 @@ export default function HomeScreen() {
     return () => clearInterval(intervalId);
   }, []);
 
-  // 💰 Compute totals
+  // --- Compute totals (unchanged calculation) ---
   useEffect(() => {
     const income = transactions
       .filter((t) => t.type.toLowerCase() === 'income')
@@ -171,7 +167,7 @@ export default function HomeScreen() {
     setAvailableBalance(income - expense);
   }, [transactions]);
 
-  // 📆 Chart data
+  // --- Chart data assembly (kept the same) ---
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
@@ -197,13 +193,13 @@ export default function HomeScreen() {
   const chartData = {
     labels: filteredDayLabels,
     datasets: [
-      { data: filteredDayLabels.map((d) => dailyData.incomeByDay[parseInt(d) - 1]), color: () => '#34D399' },
-      { data: filteredDayLabels.map((d) => dailyData.expenseByDay[parseInt(d) - 1]), color: () => '#A855F7' },
+      { data: filteredDayLabels.map((d) => dailyData.incomeByDay[parseInt(d) - 1]), color: () => colors.success ?? '#34D399' },
+      { data: filteredDayLabels.map((d) => dailyData.expenseByDay[parseInt(d) - 1]), color: () => colors.danger ?? '#EF4444' },
     ],
     legend: ['Income', 'Expense'],
   };
 
-  // 🧾 Fetch predefined bills from backend (isBill = YES)
+  // --- Fetch predefined bills (unchanged API call) ---
   useEffect(() => {
     const fetchBillCategories = async () => {
       try {
@@ -222,6 +218,7 @@ export default function HomeScreen() {
     fetchBillCategories();
   }, []);
 
+  // --- Select a predefined bill (unchanged logic) ---
   const handleSelectBill = async (item: { name: string; amount: number }) => {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 7);
@@ -235,84 +232,96 @@ export default function HomeScreen() {
     Alert.alert('Bill Added', `${item.name} added successfully.`);
   };
 
+  // --- UI ---
   return (
-    <ScrollView style={[styles.display, { backgroundColor }]}>
-      <View style={styles.main}>
-        {/* 👋 Header */}
+    <ScrollView style={[styles.display, { backgroundColor: colors.background }]} contentContainerStyle={{ paddingBottom: 32 }}>
+      <View style={styles.container}>
+        {/* Header */}
         <View style={styles.headerRow}>
           <View>
-            <Text style={[styles.greetings, { color: textColor }]}> {greeting} 👋</Text>
-            <Text style={[styles.username, { color: fadedText }]}>Welcome back, {fullName}</Text>
+            <Text style={[styles.greetings, { color: colors.text }]}>{greeting} 👋</Text>
+            <Text style={[styles.username, { color: colors.subText }]}>Welcome back, {fullName}</Text>
           </View>
-          <TouchableOpacity onPress={() => router.push('/(wallet)/business-wallet')}>
-            <MaterialCommunityIcons name="wallet-plus" size={28} color={colors.accent} />
+          <TouchableOpacity
+            style={[styles.headerIcon, { backgroundColor: colors.card }]}
+            onPress={() => router.push('/(wallet)/business-wallet')}
+          >
+            <MaterialCommunityIcons name="wallet-plus" size={22} color={colors.accent} />
           </TouchableOpacity>
         </View>
 
-        {/* 💳 Overview */}
-        <LinearGradient colors={[colors.accent, '#537A9F', '#28527A']} style={styles.card}>
-          <View style={styles.cardItem}>
-            <MaterialCommunityIcons name="wallet" size={24} color="#fff" />
-            <Text style={styles.title}>Total Earnings</Text>
-            <Text style={styles.value}>Ksh. {totalIncome.toLocaleString()}</Text>
+        {/* Overview — gradient card */}
+        <LinearGradient
+          colors={[colors.accent, '#537A9F', '#28527A']}
+          style={styles.overviewCard}
+        >
+          <View style={styles.overviewCol}>
+            <MaterialCommunityIcons name="wallet-outline" size={22} color="#fff" />
+            <Text style={styles.overviewLabel}>Total Income</Text>
+            <Text style={styles.overviewValue}>Ksh {totalIncome.toLocaleString()}</Text>
           </View>
-          <View style={styles.cardItem}>
-            <MaterialCommunityIcons name="trending-down" size={24} color="#fff" />
-            <Text style={styles.title}>Expense</Text>
-            <Text style={styles.value}>Ksh. {totalExpense.toLocaleString()}</Text>
+          <View style={styles.overviewCol}>
+            <MaterialCommunityIcons name="trending-down" size={22} color="#fff" />
+            <Text style={styles.overviewLabel}>Expenses</Text>
+            <Text style={styles.overviewValue}>Ksh {totalExpense.toLocaleString()}</Text>
           </View>
-          <View style={styles.cardItem}>
-            <MaterialCommunityIcons name="cash" size={24} color="#fff" />
-            <Text style={styles.title}>Available</Text>
-            <Text style={styles.value}>Ksh. {availableBalance.toLocaleString()}</Text>
+          <View style={styles.overviewCol}>
+            <MaterialCommunityIcons name="cash-multiple" size={22} color="#fff" />
+            <Text style={styles.overviewLabel}>Available</Text>
+            <Text style={styles.overviewValue}>Ksh {availableBalance.toLocaleString()}</Text>
           </View>
         </LinearGradient>
 
-        {/* ⚡ Buttons */}
-        <View style={styles.btnHolder}>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: '#059669' }]}
-            onPress={() => router.push('/(add)/income')}
-          >
-            <Text style={styles.btnText}>Add Income</Text>
+        {/* Action buttons */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.success }]} onPress={() => router.push('/(add)/income')}>
+            <MaterialCommunityIcons name="arrow-up-bold-circle" size={20} color="#fff" />
+            <Text style={styles.actionText}>Add Income</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: '#dc2626' }]}
-            onPress={() => router.push('/(add)/expense')}
-          >
-            <Text style={styles.btnText}>Add Expense</Text>
+
+          <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.danger }]} onPress={() => router.push('/(add)/expense')}>
+            <MaterialCommunityIcons name="arrow-down-bold-circle" size={20} color="#fff" />
+            <Text style={styles.actionText}>Add Expense</Text>
           </TouchableOpacity>
         </View>
 
-        {/* 📈 Chart */}
-        <View style={[styles.chartCard, { backgroundColor: cardBg }]}>
+        {/* Chart */}
+        <View style={[styles.chartCard, { backgroundColor: colors.card, shadowColor: colors.shadow ?? '#000' }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>This Month</Text>
+            <Text style={{ color: colors.subText }}>Last 14 days</Text>
+          </View>
           <LineChart
             data={chartData}
             width={screenWidth - 40}
             height={220}
             chartConfig={{
-              backgroundColor: cardBg,
-              backgroundGradientFrom: cardBg,
-              backgroundGradientTo: cardBg,
+              backgroundColor: colors.card,
+              backgroundGradientFrom: colors.card,
+              backgroundGradientTo: colors.card,
               decimalPlaces: 0,
-              color: (opacity = 1) =>
-                isDark ? `rgba(255,255,255,${opacity})` : `rgba(30,41,59,${opacity})`,
-              labelColor: () => textColor,
+              color: (opacity = 1) => (isDark ? `rgba(255,255,255,${opacity})` : `rgba(17,24,39,${opacity})`),
+              labelColor: () => colors.subText,
+              propsForDots: { r: '3' },
             }}
             bezier
-            style={{ borderRadius: 16, marginLeft: -8 }}
+            style={{ borderRadius: 14, marginTop: 6 }}
           />
         </View>
 
-        {/* 💳 Recent Transactions */}
-        <View style={[styles.transactionsCard, { backgroundColor: cardBg }]}>
-          <View style={styles.transactionsHeader}>
-            <Text style={[styles.transactionsTitle, { color: textColor }]}>Recent Transactions</Text>
+        {/* Recent Transactions */}
+        <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
+            <TouchableOpacity onPress={() => router.push('/transactions')}>
+              <Text style={{ color: colors.accent, fontWeight: '600' }}>View All</Text>
+            </TouchableOpacity>
           </View>
+
           {loading ? (
-            <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 20 }} />
+            <ActivityIndicator size="large" color={colors.accent} style={{ marginVertical: 20 }} />
           ) : transactions.length === 0 ? (
-            <Text style={{ color: fadedText }}>No transactions found.</Text>
+            <Text style={{ color: colors.subText }}>No transactions found.</Text>
           ) : (
             transactions.slice(0, 5).map((tx) => {
               const isIncome = tx.type.toLowerCase() === 'income';
@@ -322,41 +331,24 @@ export default function HomeScreen() {
                   key={tx.id}
                   style={[
                     styles.transactionItem,
-                    { backgroundColor: isIncome ? '#d1fae5' : '#fee2e2' },
+                    { backgroundColor: isIncome ? '#ecfdf5' : '#fff1f2' },
                   ]}
                 >
-                  <View
-                    style={[
-                      styles.iconWrapper,
-                      { backgroundColor: isIncome ? '#059669' : '#dc2626' },
-                    ]}
-                  >
-                    <MaterialCommunityIcons
-                      name={isIncome ? 'arrow-up-bold' : 'arrow-down-bold'}
-                      size={20}
-                      color="#fff"
-                    />
+                  <View style={[styles.iconWrapper, { backgroundColor: isIncome ? colors.success : colors.danger }]}>
+                    <MaterialCommunityIcons name={isIncome ? 'arrow-up-bold' : 'arrow-down-bold'} size={18} color="#fff" />
                   </View>
+
                   <View style={styles.transactionInfo}>
-                    <Text
-                      style={[
-                        styles.transactionName,
-                        { color: isIncome ? '#059669' : '#dc2626' },
-                      ]}
-                    >
+                    <Text style={[styles.transactionName, { color: isIncome ? colors.success : colors.danger }]}>
                       {tx.category?.name || 'Unknown'}
                     </Text>
-                    <Text style={[styles.transactionDesc, { color: fadedText }]}>
+                    <Text style={[styles.transactionDesc, { color: colors.subText }]}>
                       {tx.type} • {txDate.toLocaleDateString()}
                     </Text>
                   </View>
-                  <Text
-                    style={{
-                      fontWeight: 'bold',
-                      color: isIncome ? '#059669' : '#dc2626',
-                    }}
-                  >
-                    {isIncome ? '+' : '-'}Ksh. {Number(tx.amount).toLocaleString()}
+
+                  <Text style={{ fontWeight: '700', color: isIncome ? colors.success : colors.danger }}>
+                    {isIncome ? '+' : '-'}Ksh {Number(tx.amount).toLocaleString()}
                   </Text>
                 </View>
               );
@@ -364,40 +356,46 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* 🧾 Upcoming Bills */}
-        <View style={[styles.transactionsCard, { backgroundColor: cardBg }]}>
-          <View style={styles.transactionsHeader}>
-            <Text style={[styles.transactionsTitle, { color: textColor }]}>Upcoming Bills</Text>
+        {/* Upcoming Bills */}
+        <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Upcoming Bills</Text>
             <TouchableOpacity onPress={() => setShowBillSheet(true)}>
-              <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Add Bills</Text>
+              <Text style={{ color: colors.accent, fontWeight: '600' }}>Add</Text>
             </TouchableOpacity>
           </View>
+
           {bills.length === 0 ? (
-            <Text style={{ color: fadedText }}>No upcoming bills.</Text>
+            <Text style={{ color: colors.subText }}>No upcoming bills.</Text>
           ) : (
             bills.map((bill) => (
-              <View key={bill.id} style={styles.transactionItem}>
-                <View style={[styles.iconWrapper, { backgroundColor: '#f59e0b' }]}>
-                  <MaterialCommunityIcons name="calendar-month" size={20} color="#fff" />
+              <View key={bill.id} style={[styles.transactionItem, { backgroundColor: '#fff7ed' }]}>
+                <View style={[styles.iconWrapper, { backgroundColor: colors.warning ?? '#f59e0b' }]}>
+                  <MaterialCommunityIcons name="calendar-month" size={18} color="#fff" />
                 </View>
+
                 <View style={styles.transactionInfo}>
-                  <Text style={[styles.transactionName, { color: '#b45309' }]}>{bill.name}</Text>
-                  <Text style={[styles.transactionDesc, { color: fadedText }]}>
+                  <Text style={[styles.transactionName, { color: colors.warning ?? '#b45309' }]}>{bill.name}</Text>
+                  <Text style={[styles.transactionDesc, { color: colors.subText }]}>
+                    Due {new Date(bill.dueDate).toLocaleDateString()}
                   </Text>
                 </View>
-                <Text style={{ fontWeight: 'bold', color: '#b45309' }}></Text>
+
+                <Text style={{ fontWeight: '700', color: colors.warning ?? '#b45309' }}>
+                  Ksh {bill.amount.toLocaleString()}
+                </Text>
               </View>
             ))
           )}
         </View>
       </View>
 
-      {/* 💼 Bill Selection Modal */}
+      {/* Bill Selection Modal */}
       <Modal visible={showBillSheet} transparent animationType="slide" onRequestClose={() => setShowBillSheet(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setShowBillSheet(false)} />
-        <View style={[styles.sheet, { backgroundColor: cardBg }]}>
-          <Text style={[styles.sheetTitle, { color: textColor }]}>Select a Recurring Bill</Text>
-          <ScrollView style={{ maxHeight: 400 }}>
+        <View style={[styles.sheet, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sheetTitle, { color: colors.text }]}>Select a Recurring Bill</Text>
+          <ScrollView style={{ maxHeight: 380, marginBottom: 8 }}>
             {predefinedBills.map((item) => (
               <TouchableOpacity
                 key={item.id}
@@ -405,11 +403,12 @@ export default function HomeScreen() {
                 onPress={() => handleSelectBill(item)}
               >
                 <MaterialCommunityIcons name="checkbox-marked-circle" size={22} color={colors.accent} />
-                <Text style={[styles.sheetText, { color: textColor }]}>{item.name}</Text>
-                <Text style={{ color: fadedText }}></Text>
+                <Text style={[styles.sheetText, { color: colors.text }]}>{item.name}</Text>
+                <Text style={{ color: colors.subText }}>Ksh {item.amount?.toLocaleString?.() ?? item.amount}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
+
           <TouchableOpacity onPress={handleAddCustomBill} style={[styles.sheetBtn, { backgroundColor: colors.accent }]}>
             <Text style={{ color: '#fff', fontWeight: '600' }}>Add Custom Bill</Text>
           </TouchableOpacity>
@@ -420,32 +419,101 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  display: { flexGrow: 1 },
-  main: { flex: 1, padding: 16 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, marginBottom: 20 },
+  display: { flex: 1 },
+  container: { padding: 16 },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 18,
+  },
   greetings: { fontSize: 26, fontWeight: '700' },
-  username: { fontSize: 22, fontWeight: '700' },
-  card: { flexDirection: 'row', justifyContent: 'space-around', borderRadius: 20, padding: 20, marginBottom: 14 },
-  cardItem: { alignItems: 'center' },
-  title: { fontSize: 14, color: '#f8fafc' },
-  value: { fontSize: 16, fontWeight: '600', color: '#e2e8f0' },
-  btnHolder: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 },
-  button: { height: 45, width: 150, borderRadius: 25, justifyContent: 'center', alignItems: 'center' },
-  btnText: { color: '#fff', fontSize: 16 },
-  chartCard: { padding: 16, borderRadius: 16, marginBottom: 20 },
-  transactionsCard: { padding: 16, borderRadius: 16, marginBottom: 30, elevation: 2 },
-  transactionsHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  transactionsTitle: { fontSize: 18, fontWeight: '600' },
-  transactionItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, borderRadius: 12, padding: 12 },
-  iconWrapper: { borderRadius: 20, width: 40, height: 40, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  transactionInfo: { flex: 1 },
-  transactionName: { fontSize: 16, fontWeight: '500' },
-  transactionDesc: { fontSize: 12 },
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20 },
-  sheetTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  sheetItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 0.5, borderColor: '#ccc' },
-  sheetText: { flex: 1, marginLeft: 8, fontSize: 16 },
-  sheetBtn: { marginTop: 16, borderRadius: 12, alignItems: 'center', padding: 14 },
-});
+  username: { fontSize: 16, fontWeight: '600' },
 
+  headerIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  overviewCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 12,
+    marginBottom: 18,
+    elevation: 3,
+  },
+  overviewCol: { alignItems: 'center', width: '30%' },
+  overviewLabel: { color: '#e6eef7', fontSize: 12, marginTop: 6 },
+  overviewValue: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 6 },
+
+  actionRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '48%',
+    paddingVertical: 12,
+    borderRadius: 12,
+    justifyContent: 'center',
+    gap: 8,
+  },
+  actionText: { color: '#fff', marginLeft: 8, fontWeight: '700' },
+
+  chartCard: {
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 18,
+    elevation: 2,
+  },
+
+  sectionCard: {
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 18,
+    elevation: 1,
+  },
+
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: '700' },
+
+  transactionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderRadius: 12,
+    padding: 10,
+  },
+  iconWrapper: { borderRadius: 12, width: 40, height: 40, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  transactionInfo: { flex: 1 },
+  transactionName: { fontSize: 15, fontWeight: '700' },
+  transactionDesc: { fontSize: 12 },
+
+  // Modal / sheet
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
+  sheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    padding: 18,
+    maxHeight: '70%',
+  },
+  sheetTitle: { fontSize: 18, fontWeight: '800', marginBottom: 12 },
+  sheetItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 0.5,
+    borderColor: '#e6e6e6',
+    gap: 12,
+  },
+  sheetText: { flex: 1, fontSize: 15 },
+  sheetBtn: { marginTop: 12, borderRadius: 12, alignItems: 'center', padding: 14 },
+});

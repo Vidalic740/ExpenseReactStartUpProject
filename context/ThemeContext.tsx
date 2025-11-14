@@ -14,6 +14,10 @@ const themes = {
     subText: '#64748B',
     accent: '#059669',
     surface: '#ffffff',
+    success: '#059669',
+    danger: '#dc2626',
+    warning: '#f59e0b',
+    shadow: '#00000020',
   },
   dark: {
     mode: 'dark',
@@ -25,6 +29,10 @@ const themes = {
     border: '#475569',
     accent: '#a855f7',
     surface: '#1a1a1a',
+    success: '#34d399',
+    danger: '#f87171',
+    warning: '#fbbf24',
+    shadow: '#00000050',
   },
 };
 

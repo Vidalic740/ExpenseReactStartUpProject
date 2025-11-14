@@ -22,6 +22,7 @@ export default function ScreensLayout() {
       <Stack.Screen name="request" options={{ title: 'Request Account Info' }}/>
       <Stack.Screen name="security" options={{ title: 'Security Questions' }}/>
       <Stack.Screen name="verification" options={{ title: 'Two-Factor Verification' }}/>
+      <Stack.Screen name="transactions" options={{ title: 'Transactions' }}/>
     </Stack>
   );
 }
